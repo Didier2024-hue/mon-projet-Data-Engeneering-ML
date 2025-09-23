@@ -1,23 +1,26 @@
 #!/bin/bash
-# Script pour pousser sur la branche MAIN (stable)
+# Script pour écraser la branche MAIN avec le contenu de DEV
+# ⚠️ Attention : cela écrase complètement main distant avec dev local
 
-# Aller sur main (la créer si elle n'existe pas encore depuis origin)
-git checkout main 2>/dev/null || git checkout -b main origin/main
+# S'assurer qu'on est bien sur dev
+git checkout dev
 
-# Fusionner les changements depuis dev
-git merge dev
-
-# Ajouter tous les fichiers (au cas où)
+# Mettre à jour dev (au cas où)
 git add .
-
-# Commit avec message automatique si aucun n'est fourni
 if [ -z "$1" ]; then
-  msg="Update on main ($(date '+%Y-%m-%d %H:%M:%S'))"
+  msg="Sync dev -> main ($(date '+%Y-%m-%d %H:%M:%S'))"
 else
   msg="$1"
 fi
 git commit -m "$msg"
 
-# Pousser sur GitHub
-git push -u origin main
+# Recréer main à partir de dev (localement)
+git branch -D main 2>/dev/null || true
+git checkout -b main
+
+# Pousser en forçant main = dev
+git push origin main --force
+
+# Revenir sur dev pour continuer à bosser
+git checkout dev
 

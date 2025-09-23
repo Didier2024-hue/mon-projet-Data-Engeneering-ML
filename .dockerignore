@@ -1,0 +1,8 @@
+docker-data/
+logs/
+.git/
+.git/lfs/
+__pycache__/
+*.ipynb_checkpoints
+*.pyc
+

@@ -1,0 +1,116 @@
+import os
+import psycopg2
+from dotenv import load_dotenv
+
+# Charger le .env depuis le chemin absolu
+load_dotenv("/home/datascientest/cde/.env")
+
+def connect_db():
+    return psycopg2.connect(
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port=os.getenv("POSTGRES_PORT")
+    )
+
+def create_or_replace_view(cur):
+    sql = """
+    CREATE OR REPLACE VIEW public.vue_societes_wiki_harmonisee AS
+    SELECT 'temu'::text AS societe,
+           societe_temu_wiki.id,
+           societe_temu_wiki.date_import,
+           societe_temu_wiki.id_societe,
+           societe_temu_wiki.nom,
+           societe_temu_wiki.slogan,
+           societe_temu_wiki.logo,
+           societe_temu_wiki.logo_url,
+           societe_temu_wiki.url AS site_web,
+           societe_temu_wiki."propriétaire" AS "président",
+           NULL::text AS chiffre_affaires,
+           NULL::text AS date_creation,
+           NULL::text AS fondateur,
+           NULL::text AS effectif,
+           NULL::text AS forme_juridique,
+           NULL::text AS secteur_activite,
+           NULL::text AS societe_mere
+    FROM societe_temu_wiki
+    UNION ALL
+    SELECT 'tesla'::text AS societe,
+           societe_tesla_wiki.id,
+           societe_tesla_wiki.date_import,
+           societe_tesla_wiki.id_societe,
+           societe_tesla_wiki.nom,
+           NULL::text AS slogan,
+           societe_tesla_wiki.logo,
+           societe_tesla_wiki.logo_url,
+           societe_tesla_wiki.site_web,
+           societe_tesla_wiki."président",
+           societe_tesla_wiki.chiffre_d_affaires AS chiffre_affaires,
+           societe_tesla_wiki."date_de_création" AS date_creation,
+           societe_tesla_wiki.fondateur,
+           societe_tesla_wiki.effectif,
+           societe_tesla_wiki.forme_juridique,
+           societe_tesla_wiki."secteurs_d_activités" AS secteur_activite,
+           societe_tesla_wiki."société_mère" AS societe_mere
+    FROM societe_tesla_wiki
+    UNION ALL
+    SELECT 'vinted'::text AS societe,
+           societe_vinted_wiki.id,
+           societe_vinted_wiki.date_import,
+           societe_vinted_wiki.id_societe,
+           societe_vinted_wiki.nom,
+           societe_vinted_wiki.slogan,
+           societe_vinted_wiki.logo,
+           societe_vinted_wiki.logo_url,
+           NULL::text AS site_web,
+           societe_vinted_wiki."présidents" AS "président",
+           societe_vinted_wiki.chiffre_d_affaires AS chiffre_affaires,
+           NULL::text AS date_creation,
+           societe_vinted_wiki.fondateur,
+           societe_vinted_wiki.effectif,
+           societe_vinted_wiki.forme_juridique,
+           'Activités des agences de publicité'::text AS secteur_activite,
+           societe_vinted_wiki."société_mère" AS societe_mere
+    FROM societe_vinted_wiki
+    UNION ALL
+    SELECT 'chronopost'::text AS societe,
+           societe_chronopost_wiki.id,
+           societe_chronopost_wiki.date_import,
+           societe_chronopost_wiki.id_societe,
+           societe_chronopost_wiki.nom,
+           societe_chronopost_wiki.slogan,
+           societe_chronopost_wiki.logo,
+           societe_chronopost_wiki.logo_url,
+           societe_chronopost_wiki.site_web,
+           NULL::text AS "président",
+           societe_chronopost_wiki.chiffre_d_affaires AS chiffre_affaires,
+           societe_chronopost_wiki."date_de_création" AS date_creation,
+           societe_chronopost_wiki.fondateur,
+           societe_chronopost_wiki.effectif,
+           societe_chronopost_wiki.forme_juridique,
+           societe_chronopost_wiki."secteurs_d_activités" AS secteur_activite,
+           societe_chronopost_wiki."société_mère" AS societe_mere
+    FROM societe_chronopost_wiki;
+    """
+    cur.execute(sql)
+
+def main():
+    try:
+        conn = connect_db()
+        cur = conn.cursor()
+        print("Connexion à la base réussie.")
+
+        create_or_replace_view(cur)
+        conn.commit()
+        print("Vue vue_societes_wiki_harmonisee créée ou remplacée avec succès.")
+
+        cur.close()
+        conn.close()
+        print("Connexion fermée proprement.")
+    except Exception as e:
+        print(f"Erreur lors de la création de la vue : {e}")
+
+if __name__ == "__main__":
+    main()
+

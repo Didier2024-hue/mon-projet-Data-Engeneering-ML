@@ -1,0 +1,62 @@
+# ================================
+# ENVIRONNEMENTS VIRTUELS
+# ================================
+cde_env/
+cde_fastapi_env/
+.venv/
+*.egg-info/
+__pycache__/
+
+# ================================
+# DONNÉES LOURDES
+# ================================
+data/
+spacy_models/
+
+# ================================
+# DOCKER / VOLUMES
+# ================================
+docker/
+docker-data/
+docker-compose.override.yml
+
+# ================================
+# MLflow et artefacts lourds
+# ================================
+mlruns/
+--default-artifact-root/
+scripts/models/
+
+# ================================
+# LOGS ET FICHIERS TEMPORAIRES
+# ================================
+log/
+logs/
+*.log
+LOGFILE_ML
+tmp/
+all_logs_consolidated.log
+mlflow.log
+
+# ================================
+# SYSTÈME / CACHES
+# ================================
+.cache/
+.local/
+snap/
+snapd/
+snap_backup/
+snapd_backup/
+lost+found/
+
+# ================================
+# NOTEBOOKS CHECKPOINTS
+# ================================
+.ipynb_checkpoints/
+
+# ================================
+# SECRETS
+# ================================
+.env
+.env.*
+

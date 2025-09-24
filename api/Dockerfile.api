@@ -1,23 +1,30 @@
-# Image Python
+# Image Python légère
 FROM python:3.10-slim
 
-# Définir le répertoire de travail dans le container
+# Variables d'environnement utiles en développement
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier tout le contenu du dossier api dans /app du container
+# Copier requirements et installer les dépendances
+COPY requirements.txt /app/
+
+# Installer dépendances Python et outils utiles
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install mlflow==3.3.1 psycopg2-binary \
+    && pip install pytest==8.4.2 httpx==0.27.0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier le reste du code
 COPY . /app
-
-# Installer les dépendances
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Installer PostgreDB
-RUN pip install mlflow==3.3.1 psycopg2-binary
-
-# Installer les dépendances pour les tests
-RUN pip install pytest==8.4.2 httpx==0.27.0
 
 # Exposer le port 8000 pour FastAPI
 EXPOSE 8000
 
-# Lancer FastAPI avec uvicorn
+# Lancer FastAPI avec uvicorn en mode reload (développement)
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

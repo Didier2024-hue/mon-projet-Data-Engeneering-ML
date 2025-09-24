@@ -72,7 +72,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    mem_limit: 256m
+    mem_limit: 1g
     networks:
       - cde_net
 
@@ -153,7 +153,7 @@ services:
     ports:
       - "8502:8502"
     volumes:
-      - ./scripts/app:/app/scripts/app
+      - ./scripts/app:/app/scripts
       - ./api/services:/app/services
       - ./data:/app/data
       - ./logs:/app/log
@@ -162,8 +162,8 @@ services:
       - mongo
       - postgres
       - mlflow
-    command: streamlit run /app/scripts/app/app_streamlit.py --server.port 8502 --server.address 0.0.0.0
-    mem_limit: 512m
+    command: streamlit run /app/scripts/app_streamlit.py --server.port 8502 --server.address 0.0.0.0
+    mem_limit: 4g
     networks:
       - cde_net
 

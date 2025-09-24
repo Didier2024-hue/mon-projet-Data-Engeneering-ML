@@ -1,6 +1,12 @@
 #!/bin/bash
+set -e  # arrêter le script si une commande échoue
 
-# Stopper tous les containers
+# Nettoyer les fichiers .pyc et __pycache__
+echo "🧹 Nettoyage des fichiers Python compilés..."
+find ./api -name "*.pyc" -delete || true
+find ./api -name "__pycache__" -type d -exec rm -rf {} + || true
+
+# Arrêter tous les containers
 echo "📦 Arrêt des containers..."
 docker-compose down
 
@@ -13,4 +19,3 @@ echo "🚀 Démarrage des containers..."
 docker-compose up -d
 
 echo "✅ Opération terminée."
-

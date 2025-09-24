@@ -1,14 +1,27 @@
 from fastapi import APIRouter, Query
 from services.mongo_service import get_last_comments, list_societes, db
+from enum import Enum
 
 router = APIRouter(prefix="/commentaires", tags=["Commentaires"])
+
+# -----------------------
+# Enum des sociétés connues (pour Swagger)
+# -----------------------
+class SocieteEnum(str, Enum):
+    temu = "temu.com"
+    tesla = "tesla.com"
+    chronopost = "chronopost.fr"
+    vinted = "vinted.fr"
 
 # -----------------------
 # Derniers commentaires
 # -----------------------
 @router.get("/last")
 def fetch_last_comments(
-    societe_id: str | None = Query(None, description="Filtrer par identifiant ou nom de société"),
+    societe_id: SocieteEnum | None = Query(
+        None,
+        description="Choisir une société dans la liste"
+    ),
     limit: int = Query(100, ge=1, le=1000, description="Nombre max de commentaires à retourner"),
     skip: int = Query(0, ge=0, description="Décalage pour la pagination")
 ):
@@ -32,7 +45,10 @@ def fetch_societes(limit: int = Query(1000, ge=1, le=5000)):
 # -----------------------
 @router.get("/top_avis")
 def fetch_top_avis(
-    societe_id: str | None = Query(None, description="Filtrer par société"),
+    societe_id: SocieteEnum | None = Query(
+        None,
+        description="Choisir une société dans la liste"
+    ),
     limit: int = Query(10, ge=1, le=100, description="Nombre d'avis à retourner"),
     positif: bool = Query(True, description="True = meilleurs avis (note=5), False = pires avis (note=1)")
 ):

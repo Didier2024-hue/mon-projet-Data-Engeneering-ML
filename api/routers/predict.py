@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from routers.auth import guard, PublicUser 
 from pydantic import BaseModel
 from pathlib import Path
 import joblib
@@ -46,7 +47,7 @@ def preprocess_text(text: str) -> str:
 # Endpoint /predict/note
 # -----------------------
 @router.post("/note")
-def predict_note(req: PredictRequest):
+def predict_note(req: PredictRequest, user: PublicUser | None = Depends(guard("sensitive"))):
     if tfidf is None or model_note is None:
         raise HTTPException(status_code=503, detail="Modèle ou vectorizer pour 'note' non disponible")
 
@@ -62,7 +63,7 @@ def predict_note(req: PredictRequest):
 # Endpoint /predict/sentiment
 # -----------------------
 @router.post("/sentiment")
-def predict_sentiment(req: PredictRequest):
+def predict_sentiment(req: PredictRequest, user: PublicUser | None = Depends(guard("sensitive"))):
     if tfidf is None or model_sentiment is None:
         raise HTTPException(status_code=503, detail="Modèle ou vectorizer pour 'sentiment' non disponible")
 

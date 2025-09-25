@@ -17,8 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && pip install --no-cache-dir -r requirements.txt \
     && pip install mlflow==3.3.1 psycopg2-binary \
-    && pip install pytest==8.4.2 httpx==0.27.0 \
+    && pip install pytest==8.4.2  pytest-cov==4.1.0 httpx==0.27.0 \
     && rm -rf /var/lib/apt/lists/*
+
+# Librairies pour authentification
+RUN pip install --no-cache-dir "python-jose[cryptography]" "passlib[bcrypt]" "python-dotenv"
 
 # Copier le reste du code
 COPY . /app

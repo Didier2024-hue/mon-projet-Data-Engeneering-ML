@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from routers.auth import guard, PublicUser  
 from fastapi.responses import StreamingResponse, JSONResponse
 import io
 import csv
@@ -22,7 +23,7 @@ async def export_data():
 # POST /export  → vrai endpoint d'export
 # -----------------------
 @router.post("/")
-def export_comments_endpoint(data: dict):
+def export_comments_endpoint(data: dict, user: PublicUser | None = Depends(guard("sensitive"))):
     societe_id = data.get("societe_id")
     n_commentaires = data.get("n_commentaires", 50)
     formats = data.get("formats", ["csv"])

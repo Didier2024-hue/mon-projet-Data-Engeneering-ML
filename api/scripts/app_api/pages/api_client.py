@@ -22,20 +22,20 @@ def set_token(token: str | None) -> None:
     _ACCESS_TOKEN = token
 
 def get_token() -> str | None:
-    """Retourne le token courant (ou None)."""
     return _ACCESS_TOKEN
+
+def is_authenticated() -> bool:
+    return _ACCESS_TOKEN is not None
 
 def _auth_headers() -> dict:
     """Ajoute le header Authorization si un token est connu."""
     return {"Authorization": f"Bearer {_ACCESS_TOKEN}"} if _ACCESS_TOKEN else {}
 
 def login(username: str, password: str) -> dict:
-    """
-    Authentifie l'utilisateur et stocke automatiquement le JWT.
-    Retourne le dict de la réponse (ou {"error": "..."} en cas d'échec).
-    """
+    """Auth: POST /auth/login et stocke le JWT si succès."""
     try:
-        resp = requests.post(f"{API_URL}/auth/login", json={"username": username, "password": password})
+        resp = requests.post(f"{API_URL}/auth/login",
+                             json={"username": username, "password": password})
         if resp.status_code == 200:
             data = resp.json()
             token = data.get("access_token")
@@ -47,17 +47,30 @@ def login(username: str, password: str) -> dict:
         return {"error": f"Impossible de se connecter à l'API: {e}"}
 
 def logout() -> None:
-    """Efface le token (déconnexion côté client)."""
+    """Déconnexion côté client: on efface le token."""
     set_token(None)
 
+# Helper pour normaliser les réponses 401
+def _json_or_auth_required(resp, default_ok):
+    if resp.status_code == 200:
+        try:
+            return resp.json()
+        except Exception:
+            return default_ok
+    if resp.status_code in (401, 403):
+        return {"error": "auth_required", "status_code": resp.status_code}
+    try:
+        return resp.json()
+    except Exception:
+        return {"error": resp.text or "Erreur API", "status_code": resp.status_code}
+
 # =======================
-# Appels API existants
+# Appels API
 # =======================
 def get_societes(limit=100):
     try:
-        # public en AUTH_MODE=off/partial ; privé en full_only (on peut envoyer le header sans risque)
-        response = requests.get(f"{API_URL}/societes/", params={"limit": limit}, headers=_auth_headers())
-        return response.json() if response.status_code == 200 else []
+        resp = requests.get(f"{API_URL}/societes/", params={"limit": limit}, headers=_auth_headers())
+        return _json_or_auth_required(resp, [])
     except Exception:
         return []
 
@@ -66,17 +79,15 @@ def get_last_comments(societe_id=None, limit=100, skip=0):
         params = {"limit": limit, "skip": skip}
         if societe_id:
             params["societe_id"] = societe_id
-        # public en AUTH_MODE=off/partial ; privé en full_only
-        response = requests.get(f"{API_URL}/commentaires/last", params=params, headers=_auth_headers())
-        return response.json() if response.status_code == 200 else {"comments": []}
+        resp = requests.get(f"{API_URL}/commentaires/last", params=params, headers=_auth_headers())
+        return _json_or_auth_required(resp, {"comments": []})
     except Exception:
         return {"comments": []}
 
 def get_societes_with_notes(limit=1000):
     try:
-        # NB: cet endpoint est /commentaires/societes côté API
-        response = requests.get(f"{API_URL}/commentaires/societes", params={"limit": limit}, headers=_auth_headers())
-        return response.json() if response.status_code == 200 else {"societes": []}
+        resp = requests.get(f"{API_URL}/commentaires/societes", params={"limit": limit}, headers=_auth_headers())
+        return _json_or_auth_required(resp, {"societes": []})
     except Exception:
         return {"societes": []}
 
@@ -85,43 +96,36 @@ def get_top_avis(societe_id=None, limit=10, positif=True):
         params = {"limit": limit, "positif": positif}
         if societe_id:
             params["societe_id"] = societe_id
-        # public en AUTH_MODE=off/partial ; privé en full_only
-        response = requests.get(f"{API_URL}/commentaires/top_avis", params=params, headers=_auth_headers())
-        return response.json() if response.status_code == 200 else {"top_avis": []}
+        resp = requests.get(f"{API_URL}/commentaires/top_avis", params=params, headers=_auth_headers())
+        return _json_or_auth_required(resp, {"top_avis": []})
     except Exception:
         return {"top_avis": []}
 
 def predict_note(text: str):
     try:
-        # ⚠️ L’API attend "commentaire" (cf. routers/predict.py)
-        payload = {"commentaire": text, "text": text}  # "text" laissé pour compat amont, ignoré côté API
-        response = requests.post(f"{API_URL}/predict/note", json=payload, headers=_auth_headers())
-        return response.json() if response.status_code == 200 else {"error": response.text or "Erreur de prédiction"}
+        payload = {"commentaire": text, "text": text}
+        resp = requests.post(f"{API_URL}/predict/note", json=payload, headers=_auth_headers())
+        return _json_or_auth_required(resp, {"error": "Erreur de prédiction"})
     except Exception:
         return {"error": "Impossible de se connecter à l'API"}
 
 def predict_sentiment(text: str):
     try:
-        # ⚠️ L’API attend "commentaire" (cf. routers/predict.py)
         payload = {"commentaire": text, "text": text}
-        response = requests.post(f"{API_URL}/predict/sentiment", json=payload, headers=_auth_headers())
-        return response.json() if response.status_code == 200 else {"error": response.text or "Erreur de prédiction"}
+        resp = requests.post(f"{API_URL}/predict/sentiment", json=payload, headers=_auth_headers())
+        return _json_or_auth_required(resp, {"error": "Erreur de prédiction"})
     except Exception:
         return {"error": "Impossible de se connecter à l'API"}
 
 def export_comments(societe_id, n_commentaires=50, formats=["csv"]):
     try:
-        data = {
-            "societe_id": societe_id,
-            "n_commentaires": n_commentaires,
-            "formats": formats
-        }
-        # Protégé (sensitive) quand AUTH_MODE=partial/full
-        response = requests.post(f"{API_URL}/export/", json=data, headers=_auth_headers())
-        # Si l'API renvoie un fichier (StreamingResponse), .json() ne fonctionnera pas.
-        # Ici on garde le comportement existant : on tente json() sinon on renvoie un statut.
-        if "application/json" in (response.headers.get("Content-Type") or ""):
-            return response.json()
-        return {"status_code": response.status_code}
+        data = {"societe_id": societe_id, "n_commentaires": n_commentaires, "formats": formats}
+        resp = requests.post(f"{API_URL}/export/", json=data, headers=_auth_headers())
+        # Si l'API renvoie un fichier binaire, on n'essaie pas json().
+        if "application/json" in (resp.headers.get("Content-Type") or ""):
+            return _json_or_auth_required(resp, {"error": "Erreur d'export"})
+        if resp.status_code in (401, 403):
+            return {"error": "auth_required", "status_code": resp.status_code}
+        return {"status_code": resp.status_code}
     except Exception:
         return {"error": "Impossible de se connecter à l'API"}

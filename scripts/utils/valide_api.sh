@@ -1,4 +1,57 @@
 #!/bin/bash
+#
+# ============================================================
+# Script de validation de l’API Trustpilot (valide_api.sh)
+# ============================================================
+#
+# Ce script automatise une batterie de tests sur l’API FastAPI 
+# que nous avons développée. Il joue le rôle de "contrôle qualité"
+# en s’assurant que les principaux endpoints répondent bien 
+# et que les modèles de machine learning sont présents côté serveur.
+#
+# Étapes couvertes :
+#
+# 1. Chargement des variables d’environnement depuis `.env.api`
+#    → Permet d’utiliser la config Docker (chemins, ports, etc.)
+#
+# 2. Détection de l’adresse de l’API (API_BASE)
+#    → Utilise en priorité API_HOST, sinon bascule sur l’IP machine
+#
+# 3. Vérification des endpoints clés :
+#    - /health : état général de l’API
+#    - /societes : liste des sociétés en base
+#    - /commentaires : vérifie qu’il y a bien des avis associés
+#
+# 4. Vérification des modèles ML (fichiers .pkl)
+#    → Par défaut, uniquement les modèles linearsvc
+#    → Possibilité de tester tous les modèles avec MODEL_SCOPE=all
+#
+# 5. Test des prédictions :
+#    - /predict/note (note de 1 à 5)
+#    - /predict/sentiment (positif/négatif)
+#
+# 6. Test de l’export :
+#    - Vérifie que l’endpoint /export génère bien des fichiers
+#      (csv, json, xlsx) pour une société donnée
+#
+# 7. Smoke test (balayage OpenAPI) :
+#    - Explore automatiquement la documentation OpenAPI
+#    - Vérifie que les endpoints GET simples répondent bien
+#
+# 🔑 Points pratiques :
+# - Le script affiche toujours les résultats intermédiaires
+#   avec ✅ / ❌ pour un suivi rapide.
+# - Si besoin, lancer avec une IP explicite :
+#       ./valide_api.sh 172.25.53.138
+# - Pour tester tous les modèles :
+#       MODEL_SCOPE=all ./valide_api.sh
+#
+# Résultat attendu : à la fin, un résumé "🎯 Test API complet terminé"
+# indique que tous les tests ont bien été exécutés.
+#
+# ============================================================
+
+#!/bin/bash
 
 # ===============================
 # Config

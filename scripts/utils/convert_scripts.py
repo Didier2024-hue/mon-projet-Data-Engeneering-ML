@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-CONVERSION PROFESSIONNELLE : Python → Vrais Notebooks Jupyter
-Conversion complète avec cellules Markdown, code exécutable et métadonnées complètes.
-"""
 
 import json
 import ast

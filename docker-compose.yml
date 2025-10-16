@@ -118,7 +118,12 @@ services:
     env_file:
       - ./api/.env.api
     environment:
+      DATA_MODEL: /app/models
       MLFLOW_TRACKING_URI: http://mlflow:5000
+      AUTH_MODE: ${AUTH_MODE:-full}
+      API_HOST: fastapi-cde
+      API_PORT: 8000
+
     ports:
       - "8501:8501"
     volumes:
@@ -150,6 +155,10 @@ services:
     environment:
       DATA_MODEL: /app/models
       MLFLOW_TRACKING_URI: http://mlflow:5000
+      AUTH_MODE: ${AUTH_MODE:-full}
+      API_HOST: fastapi-cde
+      API_PORT: 8000
+
     ports:
       - "8502:8502"
     volumes:

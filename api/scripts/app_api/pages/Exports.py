@@ -1,48 +1,39 @@
-# /home/datascientest/cde/api/scripts/pages/Exports.py
 import streamlit as st
-from .api_client import export_comments, get_societes_with_notes
+import pandas as pd
+from .api_client import get_societes_with_notes, search_comments
 
 def app():
-    st.header("📤 Export de Données")
+    st.title("📤 Export de commentaires")
 
-    # Récupérer la liste des sociétés
-    societes_data = get_societes_with_notes()
+    # Sélection de la société
+    societes_data = get_societes_with_notes().get("societes", [])
+    societes = [s.get("societe") or s.get("nom") for s in societes_data if s]
 
-    # 🔐 Gestion auth
-    if isinstance(societes_data, dict) and societes_data.get("error") == "auth_required":
-        st.warning("🔐 Cette page nécessite une connexion. Utilisez le formulaire de la barre latérale.")
-        st.stop()
+    selected_societe = st.selectbox("Choisir une société :", societes)
 
-    if societes_data and 'societes' in societes_data:
-        societes_list = societes_data['societes']
-        societes_dict = {soc['nom']: soc.get('id', soc['nom']) for soc in societes_list if 'nom' in soc}
-    else:
-        societes_dict = {}
-        st.error("Impossible de charger la liste des entreprises")
-        return
+    # Nombre de commentaires à récupérer
+    n_commentaires = st.slider("Nombre de commentaires à récupérer :", 10, 500, 50)
 
-    selected_societe = st.selectbox("Choisissez une entreprise", options=list(societes_dict.keys()))
-    societe_id = societes_dict[selected_societe]
+    # Champ de recherche optionnel
+    keyword = st.text_input("Filtrer les commentaires (mot-clé optionnel) :", "")
 
-    n_comments = st.slider("Nombre de commentaires à exporter", min_value=10, max_value=200, value=50)
-    formats = st.multiselect("Formats d'export", options=["csv", "json", "xlsx"], default=["csv"])
+    if st.button("🔍 Rechercher les commentaires"):
+        if keyword:
+            data = search_comments(keyword, limit=n_commentaires)
+        else:
+            data = search_comments(selected_societe, limit=n_commentaires)
 
-    if st.button("Exporter les données"):
-        with st.spinner("Export en cours..."):
-            result = export_comments(societe_id, n_comments, formats)
+        if "results" in data and len(data["results"]) > 0:
+            df = pd.DataFrame(data["results"])
+            st.success(f"{len(df)} commentaires trouvés.")
+            st.dataframe(df)
 
-            # 🔐 Gestion auth
-            if isinstance(result, dict) and result.get("error") == "auth_required":
-                st.warning("🔐 Connectez-vous pour lancer un export.")
-                st.stop()
-
-            if "error" not in result:
-                st.success("Export terminé avec succès")
-                if "files" in result:
-                    st.write("Fichiers générés:")
-                    for format_name, file_path in result["files"].items():
-                        st.write(f"- {format_name.upper()}: {file_path}")
-                else:
-                    st.json(result)
-            else:
-                st.error(result["error"])
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="💾 Télécharger en CSV",
+                data=csv,
+                file_name=f"commentaires_{selected_societe}.csv",
+                mime="text/csv",
+            )
+        else:
+            st.warning("Aucun commentaire trouvé.")

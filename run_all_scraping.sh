@@ -1,147 +1,173 @@
 #!/bin/bash
 
-# Script pour lancer le scraping Trustpilot pour plusieurs sociétés
-# Utilise les variables d'environnement du fichier .env
-source .env
+# ==============================================================
+# Script : run_all_scraping.sh
+# Objectif : Lancer le scraping Trustpilot pour plusieurs sociétés
+# Auteur : Didier (projet DataScientest)
+# ==============================================================
+# Chaque exécution génère un log horodaté unique
+# ==============================================================
 
 # Chargement des variables d'environnement
 if [ -f .env ]; then
-    export $(cat .env | grep -v '#' | awk '/=/ {print $1}')
+    export $(grep -v '#' .env | awk '/=/ {print $1}')
 else
-    echo "Warning: Fichier .env non trouvé."
+    echo "⚠️  Fichier .env non trouvé. Certaines variables peuvent manquer."
 fi
 
-# Journalisation avec le répertoire de logs défini dans .env
-LOG_FILE="/home/datascientest/cde/run_all_scraping.log"
+# Répertoire et fichier de logs horodatés
+LOG_DIR="/home/datascientest/cde/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="${LOG_DIR}/run_all_scraping_$(date '+%Y-%m-%d_%H-%M-%S').log"
+
+# Redirection de la sortie vers le fichier de log + console
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-echo "Lancement du scraping Trustpilot"
-echo "Journalisation dans: $LOG_FILE"
+# ==============================================================
+# Fonctions utilitaires
+# ==============================================================
 
-# Liste des sociétés à scraper
-SOCIETES=("temu.com" "chronopost.fr" "tesla.com" "vinted.fr")
+get_timestamp() {
+    date '+%Y-%m-%d %H:%M:%S'
+}
 
-# Chemin vers le script Python (utilise BASE_DIR)
-SCRIPT_PYTHON="${BASE_DIR}/scripts/scraping/cde_scrap_new.py"
+calculate_duration() {
+    local start=$1
+    local end=$2
+    local diff=$((end - start))
+    local hours=$((diff / 3600))
+    local minutes=$(((diff % 3600) / 60))
+    local seconds=$((diff % 60))
+    printf "%02dh %02dm %02ds" $hours $minutes $seconds
+}
 
-# Répertoire de données 
-DATA_DIR=${DATA_RAW_TRUSTPILOT}
+# Vérifie la connexion Internet (HTTP, pas ping)
+check_internet_connection() {
+    if curl -Is --max-time 5 https://www.trustpilot.com | grep -q "HTTP"; then
+        return 0
+    else
+        echo "❌ ERREUR: Impossible d'accéder à https://www.trustpilot.com - problème réseau ou DNS"
+        return 1
+    fi
+}
 
-# Nombre maximum de pages à scraper par société
-MAX_PAGES=2
-
-# Vérification que le script Python existe
-if [ ! -f "$SCRIPT_PYTHON" ]; then
-    echo "Erreur: Le script Python $SCRIPT_PYTHON n'a pas été trouvé."
-    exit 1
-fi
-
-# Fonction pour vérifier la dernière page scrapée
+# Retourne la dernière page scrapée
 get_last_page() {
     local societe=$1
-    local domain_name=$(echo "$societe" | cut -d'.' -f1)  # Extraction du nom de domaine sans extension
-    local domain_dir="$DATA_DIR/$domain_name"
-    local last_page_file="$domain_dir/derniere_page.txt"
-    
+    local domain_name=$(echo "$societe" | cut -d'.' -f1)
+    local domain_dir="${DATA_RAW_TRUSTPILOT}/${domain_name}"
+    local last_page_file="${domain_dir}/derniere_page.txt"
+
     if [ -f "$last_page_file" ]; then
-        local last_page=$(cat "$last_page_file" 2>/dev/null)
-        echo "$last_page"
+        cat "$last_page_file" 2>/dev/null
     else
         echo "0"
     fi
 }
 
-# Fonction pour vérifier la connexion Internet
-check_internet_connection() {
-    if ping -c 1 -W 2 "trustpilot.com" >/dev/null 2>&1; then
-        return 0  # Connexion OK
-    else
-        echo "ERREUR: Impossible de résoudre trustpilot.com - problème de connexion DNS"
-        return 1  # Échec de connexion
-    fi
-}
-
-# Fonction pour scraper une société
+# Scraper une société donnée
 scraper_societe() {
     local societe=$1
     local last_page=$(get_last_page "$societe")
     local start_page=$((last_page + 1))
-    
-    echo "=============================================="
-    echo "Scraping de $societe"
-    echo "Dernière page scrapée: $last_page"
-    echo "Prochaine page à scraper: $start_page"
-    echo "Pages à scraper: $MAX_PAGES"
-    echo "Répertoire de données: $DATA_DIR"
-    echo "=============================================="
-    echo "Début: $(date)"
-    
-    # Vérification de la connexion Internet avant de scraper
+
+    echo "------------------------------------------------------------"
+    echo "[$(get_timestamp)] Début du scraping : $societe"
+    echo "Dernière page : $last_page | Prochaine : $start_page | Pages max : $MAX_PAGES"
+    echo "------------------------------------------------------------"
+
+    local start_time=$(date +%s)
+
     if ! check_internet_connection; then
-        echo "ERREUR: Problème de connexion détecté, passage à la suivante après pause"
-        sleep 10  # Pause plus longue en cas de problème réseau
+        echo "⚠️  Connexion indisponible, pause 10 secondes..."
+        sleep 10
         return 1
     fi
-    
-    # Lancement du script Python
+
+    # Exécution du scraping Python
     if echo -e "$societe\n$MAX_PAGES" | python3 "$SCRIPT_PYTHON"; then
+        local end_time=$(date +%s)
+        local duration=$(calculate_duration $start_time $end_time)
         local new_last_page=$(get_last_page "$societe")
-        echo "SUCCÈS: Scraping de $societe terminé avec succès"
-        echo "Nouvelle dernière page: $new_last_page"
+        echo "✅ SUCCÈS: Scraping de $societe terminé — Durée : $duration"
+        echo "Nouvelle dernière page : $new_last_page"
         return 0
     else
-        echo "ERREUR: Échec du scraping pour $societe, passage à la suivante"
+        local end_time=$(date +%s)
+        local duration=$(calculate_duration $start_time $end_time)
+        echo "❌ ÉCHEC: Scraping de $societe — Durée : $duration"
         return 1
     fi
 }
 
-# Fonction pour afficher le résumé des dernières pages
 afficher_resume() {
-    echo "=============================================="
-    echo "RÉSUMÉ DES DERNIÈRES PAGES SCRAPÉES"
-    echo "Répertoire de données: $DATA_DIR"
-    echo "=============================================="
-    
+    echo "============================================================"
+    echo "RÉSUMÉ DES DERNIÈRES PAGES SCRAPÉES — $(get_timestamp)"
+    echo "Répertoire des données : $DATA_RAW_TRUSTPILOT"
+    echo "============================================================"
     for societe in "${SOCIETES[@]}"; do
         local last_page=$(get_last_page "$societe")
         local domain_name=$(echo "$societe" | cut -d'.' -f1)
-        local domain_dir="$DATA_DIR/$domain_name"
-        echo "$societe : page $last_page (dossier: $domain_dir)"
+        echo "$societe : dernière page = $last_page"
     done
 }
 
-# Affichage de la configuration
-echo "Configuration:"
-echo "BASE_DIR: ${BASE_DIR}"
-echo "DATA_RAW_TRUSTPILOT: ${DATA_RAW_TRUSTPILOT}"
-echo "LOG_DIR: ${LOG_DIR}"
-echo "Script Python: ${SCRIPT_PYTHON}"
+# ==============================================================
+# Configuration et lancement
+# ==============================================================
+
+echo "============================================================" 
+echo "=== LANCEMENT DU SCRAPING TRUSTPILOT ==="
+echo "Date de lancement : $(get_timestamp)"
+echo "Fichier de log : $LOG_FILE"
+echo "============================================================"
+
+# Vérification du script Python
+SCRIPT_PYTHON="${BASE_DIR}/scripts/scraping/cde_scrap_new.py"
+if [ ! -f "$SCRIPT_PYTHON" ]; then
+    echo "❌ Erreur : Le script Python $SCRIPT_PYTHON n'existe pas."
+    exit 1
+fi
+
+# Liste des sociétés à scraper
+SOCIETES=("temu.com" "chronopost.fr" "tesla.com" "vinted.fr")
+
+# Paramètres
+MAX_PAGES=2
+
+# Affichage de la config
+echo "BASE_DIR             : $BASE_DIR"
+echo "DATA_RAW_TRUSTPILOT  : $DATA_RAW_TRUSTPILOT"
+echo "Script Python        : $SCRIPT_PYTHON"
 echo ""
 
-# Affichage du résumé initial
-echo "Résumé initial des dernières pages scrapées:"
+# Résumé initial
 afficher_resume
 echo ""
 
-# Boucle sur toutes les sociétés
+global_start_time=$(date +%s)
+
+# Boucle principale
 for societe in "${SOCIETES[@]}"; do
     if scraper_societe "$societe"; then
-        # Attente aléatoire entre 10 et 20 secondes avant le prochain scraping
         sleep_time=$((10 + RANDOM % 11))
-        echo "Attente de ${sleep_time} secondes avant le prochain scraping..."
+        echo "⏳ Attente de ${sleep_time}s avant le prochain scraping..."
         sleep $sleep_time
     else
-        echo "Poursuite du script après échec pour $societe"
-        # Attente plus courte en cas d'erreur
+        echo "⚠️  Passage à la société suivante après erreur."
         sleep 5
     fi
 done
 
-# Affichage du résumé final
-echo ""
-echo "Résumé final des dernières pages scrapées:"
-afficher_resume
+# Résumé final
+global_end_time=$(date +%s)
+total_duration=$(calculate_duration $global_start_time $global_end_time)
 
 echo ""
-echo "Scraping terminé pour toutes les sociétés!"
-echo "Fin: $(date)"
+afficher_resume
+echo ""
+echo "============================================================"
+echo "✅ FIN DU SCRAPING TRUSTPILOT — $(get_timestamp)"
+echo "Durée totale : $total_duration"
+echo "Logs complets : $LOG_FILE"
+echo "============================================================"

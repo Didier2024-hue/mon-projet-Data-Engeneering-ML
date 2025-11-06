@@ -1,21 +1,30 @@
 #!/bin/bash
-# Script pour pousser sur la branche DEV (développement)
-# ⚠️ Attention : cela écrase la branche dev distante avec le contenu local
+# =====================================================
+# 🔄 Script Git : push sur la branche DEV proprement
+# =====================================================
 
 # Aller sur dev (la créer si elle n'existe pas encore)
 git checkout dev 2>/dev/null || git checkout -b dev
 
-# Ajouter tous les fichiers
-git add .
+# Nettoyage des fichiers système à ignorer
+echo "🧹 Nettoyage des fichiers temporaires..."
+echo -e "\nswapfile\n.vscode-server/\n__pycache__/\n*.pyc\n.env\nlogs/\nmlruns/\n" >> .gitignore
 
-# Commit avec message automatique si aucun n'est fourni
+# Supprime les fichiers non suivis indésirables du cache Git
+git rm --cached -r swapfile .vscode-server/ 2>/dev/null
+
+# Ajouter uniquement les fichiers utiles
+git add api/ docker-compose.yml requirements.txt restart_compose.sh scripts/ data/ 2>/dev/null
+
+# Message de commit
 if [ -z "$1" ]; then
   msg="Update on dev ($(date '+%Y-%m-%d %H:%M:%S'))"
 else
   msg="$1"
 fi
-git commit -m "$msg"
 
-# Pousser en forçant pour que le remote = local
+# Commit + push
+git commit -m "$msg"
 git push origin dev --force
 
+echo "✅ Push terminé sur la branche 'dev' avec succès."

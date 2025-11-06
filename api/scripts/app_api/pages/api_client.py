@@ -198,3 +198,21 @@ def search_comments(keyword: str, limit=20):
         return _json_or_auth_required(resp, {"results": []})
     except Exception:
         return {"results": []}
+    
+def get_all_comments(societe_id: str):
+    """
+    Récupère l'ensemble des avis pour une société via /commentaires/full
+    """
+    try:
+        params = {"societe_id": societe_id}
+        resp = requests.get(
+            f"{API_URL}/commentaires/full",
+            params=params,
+            headers=_auth_headers(),
+            timeout=10,
+        )
+        return _json_or_auth_required(resp, {"comments": []})
+    except Exception as e:
+        print(f"[get_all_comments] ❌ Erreur API : {e}")
+        return {"comments": []}
+

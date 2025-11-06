@@ -186,6 +186,36 @@ def get_commentaire_by_id(comment_id: str):
     return doc
 
 # -----------------------
+# Tous les commentaires (sans limite)
+# -----------------------
+@router.get("/full")
+def fetch_all_comments(
+    societe_id: str = Query(..., description="Nom ou domaine de la société (ex: chronopost.fr)"),
+    user=Depends(guard("full_only")),
+):
+    """
+    Retourne tous les commentaires d'une société (sans limite, pour analyses / dashboard).
+    ⚠️ À utiliser uniquement côté back-office ou dashboard, pas en front public.
+    """
+    collection = db["avis_trustpilot"]
+
+    query = {
+        "$or": [
+            {"societe_nom": {"$regex": societe_id, "$options": "i"}},
+            {"id_societe": {"$regex": societe_id, "$options": "i"}},
+        ]
+    }
+
+    cursor = collection.find(query)
+    docs = []
+    for d in cursor:
+        d["_id"] = str(d["_id"])  # conversion ObjectId -> str
+        docs.append(d)
+
+    return {"comments": docs, "count": len(docs)}
+
+
+# -----------------------
 # Liste de commentaires factices (pour tests)
 # -----------------------
 @router.get("/")

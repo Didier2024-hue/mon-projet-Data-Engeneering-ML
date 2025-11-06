@@ -12,6 +12,7 @@ __pycache__/
 # ================================
 data/
 spacy_models/
+swapfile
 
 # ================================
 # DOCKER / VOLUMES

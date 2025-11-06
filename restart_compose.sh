@@ -1,21 +1,48 @@
 #!/bin/bash
-set -e  # arrêter le script si une commande échoue
+set -e  # Stopper si une commande échoue
 
-# Nettoyer les fichiers .pyc et __pycache__
 echo "🧹 Nettoyage des fichiers Python compilés..."
 find ./api -name "*.pyc" -delete || true
 find ./api -name "__pycache__" -type d -exec rm -rf {} + || true
 
-# Arrêter tous les containers
-echo "📦 Arrêt des containers..."
+# Vérifier et activer le swap si nécessaire
+if ! swapon --show | grep -q "swapfile"; then
+  echo "💾 Activation du swap..."
+  sudo swapon /home/datascientest/cde/swapfile || echo "⚠️ Impossible d'activer le swap (déjà actif ?)"
+else
+  echo "💾 Swap déjà actif."
+fi
+
+# Vérifier l'espace disque
+echo "💽 Vérification de l'espace disque..."
+df -h /home/datascientest/cde | tail -n 1
+
+# Arrêter les containers
+echo "📦 Arrêt des containers Docker..."
 docker-compose down
 
-# Rebuild uniquement le service API
-echo "🔧 Reconstruction du service API..."
-docker-compose build api
+# Reconstruire les images critiques (API + MLflow)
+echo "🔧 Reconstruction des services critiques..."
+docker-compose build api mlflow
 
-# Relancer les containers en arrière-plan
+# Relancer les containers
 echo "🚀 Démarrage des containers..."
 docker-compose up -d
 
-echo "✅ Opération terminée."
+# Attendre que MLflow devienne healthy (jusqu’à 3 minutes max)
+echo "⏳ Vérification de l’état de MLflow..."
+for i in {1..18}; do
+  STATUS=$(docker inspect -f '{{.State.Health.Status}}' mlflow-cde 2>/dev/null || echo "unknown")
+  if [ "$STATUS" == "healthy" ]; then
+    echo "✅ MLflow est prêt !"
+    break
+  fi
+  echo "🕐 Attente... (tentative $i/18)"
+  sleep 10
+done
+
+# Afficher le résumé
+echo "📊 État des conteneurs :"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+echo "✅ Redémarrage complet terminé avec succès."

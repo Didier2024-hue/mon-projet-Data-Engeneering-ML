@@ -3,41 +3,65 @@
 # ================================
 cde_env/
 cde_fastapi_env/
+cde_streamlit_env/
 .venv/
+venv/
 *.egg-info/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # ================================
-# DONNÉES LOURDES
+# DONNÉES LOURDES / TEMPORAIRES
 # ================================
 data/
+data/raw/
+data/tmp/
 spacy_models/
 swapfile
+*.swp
+*.bak
+data/model/*.pkl
 
 # ================================
-# DOCKER / VOLUMES
+# DOCKER / COMPOSE
 # ================================
 docker/
 docker-data/
 docker-compose.override.yml
+docker-compose.backup.yml
 
 # ================================
-# MLflow et artefacts lourds
+# MLflow et modèles
 # ================================
 mlruns/
+mlartifacts/
 --default-artifact-root/
-scripts/models/
+mlflow.log
+LOGFILE_ML
+
+# Ignorer uniquement les modèles lourds, pas les scripts Python
+scripts/models/*.pkl
+scripts/models/*.bin
+scripts/models/*.pt
+scripts/models/*.joblib
+scripts/models/*.h5
+scripts/models/*.sav
+scripts/models/*.onnx
+
+# Garder les scripts Python
+!scripts/**/*.py
 
 # ================================
-# LOGS ET FICHIERS TEMPORAIRES
+# LOGS ET SORTIES
 # ================================
 log/
 logs/
 *.log
-LOGFILE_ML
+nohup.out
 tmp/
 all_logs_consolidated.log
-mlflow.log
 
 # ================================
 # SYSTÈME / CACHES
@@ -49,15 +73,24 @@ snapd/
 snap_backup/
 snapd_backup/
 lost+found/
+__cache__/
+tmp_cache/
 
 # ================================
-# NOTEBOOKS CHECKPOINTS
+# NOTEBOOKS / IDE
 # ================================
 .ipynb_checkpoints/
+.vscode/
+.vscode-server/
+.DS_Store
 
 # ================================
-# SECRETS
+# SECRETS / CONFIGS
 # ================================
 .env
 .env.*
-
+.envrc
+*.key
+*.pem
+*.crt
+*.secrets

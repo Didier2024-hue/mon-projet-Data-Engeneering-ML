@@ -171,3 +171,36 @@ echo "✅ FIN DU SCRAPING TRUSTPILOT — $(get_timestamp)"
 echo "Durée totale : $total_duration"
 echo "Logs complets : $LOG_FILE"
 echo "============================================================"
+
+
+# =============================================================
+# LANCEMENT DU SCRAPING WIKIPEDIA
+# =============================================================
+echo ""
+echo "============================================================"
+echo "=== LANCEMENT DU SCRAPING WIKIPEDIA ==="
+echo "Date : $(get_timestamp)"
+echo "Script : ${BASE_DIR}/scripts/scraping/cde_scrap_wiki.py"
+echo "============================================================"
+
+WIKI_SCRIPT="${BASE_DIR}/scripts/scraping/cde_scrap_wiki.py"
+
+if [ ! -f "$WIKI_SCRIPT" ]; then
+    echo "❌ Erreur : Le script $WIKI_SCRIPT est introuvable."
+else
+    if python3 "$WIKI_SCRIPT"; then
+        echo "✅ Scraping Wikipédia terminé avec succès."
+    else
+        echo "❌ Échec du scraping Wikipédia."
+    fi
+fi
+
+
+echo ""
+afficher_resume
+echo ""
+echo "============================================================"
+echo "✅ FIN DU SCRAPING TRUSTPILOT — $(get_timestamp)"
+echo "Durée totale : $total_duration"
+echo "Logs complets : $LOG_FILE"
+echo "============================================================"

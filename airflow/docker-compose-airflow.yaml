@@ -1,0 +1,50 @@
+services:
+  redis-airflow:
+    image: redis:latest
+    container_name: redis-airflow
+    restart: unless-stopped
+    networks:
+      - cde_cde_net
+    ports:
+      - "6380:6379"
+
+  airflow-webserver:
+    image: apache/airflow:2.7.1
+    container_name: airflow-webserver
+    restart: unless-stopped
+    depends_on:
+      - redis-airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-cde:5432/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: "changeme_airflow_secret"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    ports:
+      - "8080:8080"
+    networks:
+      - cde_cde_net
+    command: webserver
+
+  airflow-scheduler:
+    image: apache/airflow:2.7.1
+    container_name: airflow-scheduler
+    restart: unless-stopped
+    depends_on:
+      - redis-airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-cde:5432/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    networks:
+      - cde_cde_net
+    command: scheduler
+
+networks:
+  cde_cde_net:
+    external: true

@@ -1,53 +1,33 @@
 services:
-
   redis-airflow:
-    image: redis:7
+    image: redis:latest
     container_name: redis-airflow
     restart: unless-stopped
     networks:
       - cde_cde_net
     ports:
       - "6380:6379"
-    mem_limit: 128m
 
   airflow-webserver:
     image: apache/airflow:2.9.3-python3.10
     container_name: airflow-webserver
     restart: unless-stopped
-    user: "${AIRFLOW_UID:-1000}:0"
-
     depends_on:
       - redis-airflow
-
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-cde:5432/airflow
-
-      # même secret key ici :
-      AIRFLOW__WEBSERVER__SECRET_KEY: "66f4fcd7cb254264be4b7434f114545e"
-
-      AIRFLOW__WEBSERVER__WORKERS: 2
-      AIRFLOW__WEBSERVER__WORKER_REFRESH_BATCH_SIZE: 0
-      AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL: 300
-      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
-
-      AIRFLOW__CORE__PARALLELISM: 16
-      AIRFLOW__CORE__DAG_CONCURRENCY: 8
-      AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: 1
-
+      AIRFLOW__WEBSERVER__SECRET_KEY: "changeme_airflow_secret"
       _PIP_ADDITIONAL_REQUIREMENTS: ""
-
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./requirements_airflow.txt:/requirements_airflow.txt
-      - /home/datascientest/cde:/opt/airflow/cde
-      - /home/datascientest/cde/.env:/opt/airflow/cde/.env
-
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
+    ports:
+      - "8080:8080"
+    networks:
+      - cde_cde_net
     command: >
       bash -c "
       pip install --no-cache-dir -r /requirements_airflow.txt &&
@@ -55,60 +35,30 @@ services:
       airflow webserver
       "
 
-    ports:
-      - "8080:8080"
-
-    networks:
-      - cde_cde_net
-
-    mem_limit: 1g
-    cpus: 0.80
-
   airflow-scheduler:
     image: apache/airflow:2.9.3-python3.10
     container_name: airflow-scheduler
     restart: unless-stopped
-    user: "${AIRFLOW_UID:-1000}:0"
-
     depends_on:
       - redis-airflow
-
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-cde:5432/airflow
-
-      # même secret key ici :
-      AIRFLOW__WEBSERVER__SECRET_KEY: "66f4fcd7cb254264be4b7434f114545e"
-
-      AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: "false"
-      AIRFLOW__SCHEDULER__MAX_DAGRUNS_PER_LOOP_TO_SCHEDULE: 20
-      AIRFLOW__SCHEDULER__USE_ROW_LEVEL_LOCKING: "true"
-
       _PIP_ADDITIONAL_REQUIREMENTS: ""
-
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./requirements_airflow.txt:/requirements_airflow.txt
-      - /home/datascientest/cde:/opt/airflow/cde
-      - /home/datascientest/cde/.env:/opt/airflow/cde/.env
-
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
+    networks:
+      - cde_cde_net
     command: >
       bash -c "
       pip install --no-cache-dir -r /requirements_airflow.txt &&
+      airflow db upgrade &&
       airflow scheduler
       "
 
-    networks:
-      - cde_cde_net
-
-    mem_limit: 384m
-    cpus: 0.60   
-
 networks:
   cde_cde_net:
-    driver: bridge
+    external: true

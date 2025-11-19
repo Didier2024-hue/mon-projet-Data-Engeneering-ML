@@ -16,15 +16,18 @@ BASE_DIR = os.getenv("BASE_DIR", "/home/datascientest/cde")
 SOCIETES_A_TRAITER = ['temu', 'tesla', 'chronopost', 'vinted']
 LOG_DIR = os.path.join(BASE_DIR, "log")
 
+
 def ensure_log_dir():
     """Crée le répertoire de logs si inexistant"""
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
+
 def get_log_file():
     """Génère un nom de fichier de log avec timestamp"""
     now = datetime.now().strftime("%Y%m%d_%H%M%S")
     return os.path.join(LOG_DIR, f"import_mongodb_{now}.log")
+
 
 class Logger:
     """Logger personnalisé avec écriture console + fichier"""
@@ -44,6 +47,7 @@ class Logger:
         with open(self.filepath, "w", encoding="utf-8") as f:
             f.write("\n".join(self.log_lines))
 
+
 def trouver_fichier_info_generale(societe_path, societe_nom):
     """Trouve le fichier d'informations générales le plus récent"""
     pattern_dir = re.compile(rf"scrap_{societe_nom}_\d{{8}}(_\d+)?")
@@ -56,8 +60,9 @@ def trouver_fichier_info_generale(societe_path, societe_nom):
             for f in os.listdir(full_path):
                 if pattern_file.fullmatch(f):
                     candidats.append(os.path.join(full_path, f))
-    
+
     return max(candidats) if candidats else None
+
 
 def convertir_repartition(repartition):
     """Convertit les clés de répartition en format standard"""
@@ -70,7 +75,9 @@ def convertir_repartition(repartition):
         "total": repartition.get("Total")
     }
 
+
 def main():
+    """Retourne True si tout se passe bien, False en cas d'erreur critique."""
     ensure_log_dir()
     log = Logger(get_log_file())
 
@@ -81,8 +88,9 @@ def main():
         log.log("Configuration MongoDB manquante dans .env", "ERROR")
         log.log("Assurez-vous d'avoir MONGO_URI et MONGO_DB définis", "ERROR")
         log.save()
-        return
+        return False
 
+    client = None
     try:
         # Connexion à MongoDB avec vérification
         client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
@@ -97,8 +105,9 @@ def main():
             log.log("Collections vidées avec succès avant import", "INFO")
         except PyMongoError as e:
             log.log(f"Erreur lors du vidage des collections: {str(e)}", "ERROR")
-            raise
+            return False
 
+        # Traitement des sociétés
         for soc in SOCIETES_A_TRAITER:
             societe_path = os.path.join(BASE_DIR, "data", "trustpilot", soc)
             if not os.path.isdir(societe_path):
@@ -111,7 +120,7 @@ def main():
                 continue
 
             log.log(f"Traitement de {fichier_info}", "INFO")
-            
+
             try:
                 with open(fichier_info, encoding='utf-8') as f:
                     societe_data = json.load(f)
@@ -137,7 +146,9 @@ def main():
                         "note_4": repartition.get("4"),
                         "note_5": repartition.get("5"),
                         "total_avis": repartition.get("total"),
-                        "date_extraction": datetime.strptime(societe_data["date_extraction"], "%Y-%m-%d %H:%M:%S") if societe_data.get("date_extraction") else None,
+                        "date_extraction": datetime.strptime(
+                            societe_data["date_extraction"], "%Y-%m-%d %H:%M:%S"
+                        ) if societe_data.get("date_extraction") else None,
                         "nombre_commentaires": int(societe_data.get("nombre_commentaires", 0)),
                         "pages_scrapees": societe_data.get("pages_scrapees", "")
                     }},
@@ -171,7 +182,7 @@ def main():
                             try:
                                 with open(file_path, encoding='utf-8') as f:
                                     avis_list = json.load(f)
-                                
+
                                 # Ajout des métadonnées
                                 for avis in avis_list:
                                     avis.update({
@@ -179,28 +190,49 @@ def main():
                                         "id_societe": soc,
                                         "societe_nom": societe_data.get("societe", soc)
                                     })
-                                
+
                                 if avis_list:
                                     db.avis_trustpilot.insert_many(avis_list)
                                     total_avis += len(avis_list)
                             except json.JSONDecodeError as e:
                                 log.log(f"Erreur JSON dans {file_path}: {str(e)}", "ERROR")
                             except PyMongoError as e:
-                                log.log(f"Erreur MongoDB lors de l'insertion des avis {file_path}: {str(e)}", "ERROR")
+                                log.log(
+                                    f"Erreur MongoDB lors de l'insertion des avis {file_path}: {str(e)}",
+                                    "ERROR"
+                                )
 
-            log.log(f"Société traitée: {soc} (Avis importés: {total_avis}, Répertoires traités: {len(repertoires_traite)})", "SUCCESS")
+            log.log(
+                f"Société traitée: {soc} (Avis importés: {total_avis}, "
+                f"Répertoires traités: {len(repertoires_traite)})",
+                "SUCCESS"
+            )
+
+        # Si on arrive ici sans erreur critique -> succès global
+        return True
 
     except ConnectionFailure as e:
         log.log(f"Échec de connexion à MongoDB: {str(e)}", "ERROR")
+        return False
     except PyMongoError as e:
         log.log(f"Erreur MongoDB: {str(e)}", "ERROR")
+        return False
     except Exception as e:
         log.log(f"Erreur inattendue: {str(e)}", "ERROR")
+        return False
     finally:
-        if 'client' in locals():
+        if client is not None:
             client.close()
             log.log("Connexion MongoDB fermée", "INFO")
         log.save()
 
+
 if __name__ == "__main__":
-    main()
+    import sys
+    success = main()
+    if success:
+        print("Opération Mongo terminée avec succès")
+        sys.exit(0)
+    else:
+        print("Opération Mongo terminée avec des erreurs")
+        sys.exit(1)

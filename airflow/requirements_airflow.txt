@@ -1,0 +1,8 @@
+mwparserfromhell
+python-dotenv
+requests
+beautifulsoup4
+lxml
+pandas
+fake-useragent
+pymongo

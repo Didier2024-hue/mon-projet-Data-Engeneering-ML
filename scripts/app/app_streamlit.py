@@ -13,23 +13,12 @@ from dotenv import load_dotenv
 # =========================
 # Chargement du .env
 # =========================
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  # Charge les variables du .env dans os.environ
-
-model_dir = os.getenv("DATA_MODEL")
-
-if model_dir is None:
-    raise ValueError("Le dossier des modèles 'DATA_MODEL' n'est pas défini dans .env ou n'a pas été chargé")
-
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ENV_PATH = os.path.join(BASE_DIR, "..", ".env")  # On remonte d'un dossier si besoin
+ENV_PATH = os.path.join(BASE_DIR, "..", ".env")
 load_dotenv(ENV_PATH)
 
 # Récupération des variables d'environnement
-DATA_MODEL = os.getenv("DATA_MODEL")  # Chemin vers les modèles
+DATA_MODEL = os.getenv("DATA_MODEL")
 if DATA_MODEL is None or not os.path.isdir(DATA_MODEL):
     st.error(f"Le dossier des modèles '{DATA_MODEL}' n'existe pas ou n'est pas défini.")
     st.stop()
@@ -43,8 +32,8 @@ TFIDF_NAME = "tfidf_vectorizer_dual.pkl"
 def load_tfidf(path: str):
     return joblib.load(path)
 
-@st.cache_resource
-def load_all_models(models_dir: str):
+def list_available_models(models_dir: str):
+    """ Retourne un dict {task: {algo: filename}} sans charger les modèles. """
     models = {"note": {}, "sentiment": {}}
     pattern = re.compile(r"(?P<algo>.+)_(?P<task>sentiment|note)\.pkl$", re.IGNORECASE)
 
@@ -57,12 +46,14 @@ def load_all_models(models_dir: str):
             continue
         algo = m.group("algo").lower()
         task = m.group("task").lower()
-        try:
-            model = joblib.load(pkl_path)
-            models[task][algo] = model
-        except Exception as e:
-            st.warning(f"Impossible de charger {filename} : {e}")
+        models[task][algo] = filename
+
     return models
+
+@st.cache_resource
+def load_single_model(model_path: str):
+    """ Charge un seul modèle ML (optimisation mémoire). """
+    return joblib.load(model_path)
 
 def mark_negation(text, window=3):
     negation_words = {"ne", "pas", "plus", "jamais", "rien", "aucun", "sans", "nul"}
@@ -109,7 +100,8 @@ def predict_with_optional_proba(model: ClassifierMixin, X):
 # =========================
 tfidf_path = os.path.join(DATA_MODEL, TFIDF_NAME)
 tfidf = load_tfidf(tfidf_path)
-models = load_all_models(DATA_MODEL)
+
+available_models = list_available_models(DATA_MODEL)
 
 # =========================
 # UI
@@ -118,15 +110,39 @@ st.title("🧪 Testeur d'avis – multi-modèles (note & sentiment)")
 
 with st.sidebar:
     st.header("⚙️ Paramètres")
-    available_tasks = [t for t, d in models.items() if len(d) > 0]
+
+    # Liste des tâches
+    available_tasks = [t for t, d in available_models.items() if len(d) > 0]
     if not available_tasks:
         st.error("Aucun modèle détecté dans le dossier.")
         st.stop()
-    task = st.selectbox("Tâche", available_tasks, format_func=lambda x: "Prédiction de la note (1-5)" if x == "note" else "Analyse de sentiment")
-    algos = list(models[task].keys())
-    model_name = st.selectbox("Modèle", algos)
+
+    task = st.selectbox(
+        "Tâche",
+        available_tasks,
+        format_func=lambda x: "Prédiction de la note (1-5)" if x == "note" else "Analyse de sentiment"
+    )
+
+    # On limite d'abord à "linear" uniquement
+    show_all = st.checkbox("Activer les modèles avancés")
+
+    if show_all:
+        algos = list(available_models[task].keys())
+    else:
+        # On affiche seulement linear_svc si présent
+        algos = [a for a in available_models[task].keys() if "linear" in a]
+        if not algos:
+            algos = list(available_models[task].keys())  # fallback, mais normalement inutile
+
+    # Sélection du modèle avec linear par défaut
+    default_algo_index = 0
+    if "linear" in algos:
+        default_algo_index = algos.index("linear")
+
+    model_name = st.selectbox("Modèle", algos, index=default_algo_index)
+
     st.markdown("**Modèles trouvés :**")
-    for t, algos_d in models.items():
+    for t, algos_d in available_models.items():
         if algos_d:
             st.write(f"- **{t}** :", ", ".join(sorted(algos_d.keys())))
 
@@ -141,13 +157,25 @@ if do_predict:
     if not user_input.strip():
         st.warning("Veuillez entrer un commentaire valide.")
         st.stop()
-    model = models[task][model_name]
-    phrases = [l.strip() for l in user_input.split("\n") if l.strip()] if batch_mode else [user_input.strip()]
+
+    # Chargement du modèle sélectionné
+    filename = available_models[task][model_name]
+    model_path = os.path.join(DATA_MODEL, filename)
+    model = load_single_model(model_path)
+
+    # Traitement
+    phrases = (
+        [l.strip() for l in user_input.split("\n") if l.strip()]
+        if batch_mode else
+        [user_input.strip()]
+    )
+
     results = []
     for phrase in phrases:
         phrase_proc = mark_negation(phrase)
         X_vec = tfidf.transform([phrase_proc])
         pred, proba = predict_with_optional_proba(model, X_vec)
+
         out = {"phrase": phrase, "prediction": pred}
         if task == "note":
             try:
@@ -156,7 +184,10 @@ if do_predict:
                 pass
         if proba:
             out["proba"] = proba
+
         results.append(out)
+
+    # Affichage
     for r in results:
         st.write("---")
         st.write(f"**Texte :** {r['phrase']}")

@@ -2,45 +2,47 @@
 # =====================================================
 # 🚀 Script de synchronisation : DEV → MAIN
 # =====================================================
-# ⚠️ Ce script écrase complètement la branche MAIN distante
-# avec le contenu actuel de la branche DEV.
-# Utiliser uniquement si DEV est stable.
+# ⚠️ ÉCRASE entièrement la branche MAIN distante.
+# Utiliser uniquement lorsque DEV est stable.
+# =====================================================
 
 set -e  # Stoppe le script en cas d'erreur
 
-# Vérification de la branche actuelle
+# Vérification : on doit être sur dev
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [ "$current_branch" != "dev" ]; then
   echo "❌ Tu n'es pas sur la branche 'dev'."
-  echo "➡️  Fais 'git checkout dev' avant de lancer ce script."
+  echo "➡️  Fais : git checkout dev"
   exit 1
 fi
 
-# Vérifie s'il y a des changements non commités
+# Vérifier l'état du workspace
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "⚠️  Des modifications locales non commités ont été détectées."
-  echo "   -> Fais un commit propre avant d'exécuter la synchro."
+  echo "⚠️ Il reste des changements non commités."
+  echo "➡️  Commit ou stash avant de synchroniser."
   exit 1
 fi
 
-# Message de commit pour traçabilité (si besoin)
-if [ -z "$1" ]; then
-  msg="Sync dev -> main ($(date '+%Y-%m-%d %H:%M:%S'))"
-else
-  msg="$1"
-fi
+# Message de commit (optionnel – traçabilité)
+msg=${1:-"Sync dev → main ($(date '+%Y-%m-%d %H:%M:%S'))"}
 
-# Supprimer l'ancienne branche main locale (si elle existe)
+echo "🔄 Synchronisation DEV → MAIN"
+echo "ℹ️  Message : $msg"
+
+# Supprimer la branche main locale si elle existe
 git branch -D main 2>/dev/null || true
 
-# Créer main à partir de dev
+# Créer main depuis dev
 git checkout -b main
 
-# Pousser en forçant main à refléter dev
-echo "🚀 Synchronisation en cours (dev → main)..."
+# Créer un commit de traçabilité (optionnel)
+git commit --allow-empty -m "$msg"
+
+# Push forcé
+echo "🚀 Push forcé vers remote/main..."
 git push origin main --force
 
-# Revenir sur dev
+# Retour sur dev
 git checkout dev
 
-echo "✅ Synchronisation terminée avec succès !"
+echo "✅ Synchronisation DEV → MAIN terminée"

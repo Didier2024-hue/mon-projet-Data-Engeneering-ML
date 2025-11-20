@@ -22,19 +22,14 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-cde:5432/airflow
-
-      # même secret key ici :
       AIRFLOW__WEBSERVER__SECRET_KEY: "66f4fcd7cb254264be4b7434f114545e"
-
       AIRFLOW__WEBSERVER__WORKERS: 2
       AIRFLOW__WEBSERVER__WORKER_REFRESH_BATCH_SIZE: 0
       AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL: 300
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
-
       AIRFLOW__CORE__PARALLELISM: 16
       AIRFLOW__CORE__DAG_CONCURRENCY: 8
       AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: 1
-
       _PIP_ADDITIONAL_REQUIREMENTS: ""
 
     volumes:
@@ -76,14 +71,10 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-cde:5432/airflow
-
-      # même secret key ici :
       AIRFLOW__WEBSERVER__SECRET_KEY: "66f4fcd7cb254264be4b7434f114545e"
-
       AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: "false"
       AIRFLOW__SCHEDULER__MAX_DAGRUNS_PER_LOOP_TO_SCHEDULE: 20
       AIRFLOW__SCHEDULER__USE_ROW_LEVEL_LOCKING: "true"
-
       _PIP_ADDITIONAL_REQUIREMENTS: ""
 
     volumes:
@@ -107,8 +98,9 @@ services:
       - cde_cde_net
 
     mem_limit: 384m
-    cpus: 0.60   
+    cpus: 0.60
+
 
 networks:
   cde_cde_net:
-    driver: bridge
+    external: true

@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 
 default_args = {
-    "owner": "didier",
+    "owner": "datascientest",
     "depends_on_past": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),

@@ -6,7 +6,7 @@ from airflow.utils.dates import days_ago
 DAG_ID = "cde_scraping_pipeline"
 
 default_args = {
-    "owner": "didier",
+    "owner": "datascientest",
     "depends_on_past": False,
     "retries": 0,
 }

@@ -1,279 +1,204 @@
 #!/bin/bash
 
 # =============================================================
-# Script : run_all_scraping.sh
-# Objectif : Lancer le scraping Trustpilot pour plusieurs sociétés
-# Auteur : Didier (projet DataScientest)
+# Script : run_all_scraping.sh (Version A - Clean & Stable)
+# Objectif : Lancer le scraping Trustpilot + Wikipédia
+# Compatible Host + Airflow (Docker)
+# Auteur : Didier / Version refactorisée
 # =============================================================
 
+
 # -------------------------------------------------------------
-# 1️⃣ Détection fiable de l'environnement (HOST vs DOCKER)
+# 1. Détection environnement (HOST vs DOCKER)
 # -------------------------------------------------------------
 HOST_BASE="/home/datascientest/cde"
 DOCKER_BASE="/opt/airflow/cde"
 
 if [ -f "/.dockerenv" ]; then
-    # On est DANS un conteneur Docker
     IN_DOCKER=1
     BASE_DIR="$DOCKER_BASE"
 else
-    # On est sur la machine hôte
     IN_DOCKER=0
     BASE_DIR="$HOST_BASE"
 fi
 
 ENV_FILE="${BASE_DIR}/.env"
 
+
 # -------------------------------------------------------------
-# 2️⃣ Chargement du .env (simple, sans magie)
+# 2. Chargement du .env simple et fiable
 # -------------------------------------------------------------
 if [ -f "$ENV_FILE" ]; then
     set -a
     . "$ENV_FILE"
     set +a
 else
-    echo "⚠️  Fichier .env non trouvé dans ${BASE_DIR}. Certaines variables peuvent manquer."
+    echo "⚠️  WARNING : Fichier .env introuvable : $ENV_FILE"
 fi
 
-# -------------------------------------------------------------
-# 3️⃣ Normalisation des chemins en fonction de BASE_DIR
-#    → Si on est dans Docker, on remplace /home/... par /opt/airflow/...
-# -------------------------------------------------------------
 
+# -------------------------------------------------------------
+# 3. Normalisation des chemins
+# -------------------------------------------------------------
 if [ "$IN_DOCKER" -eq 1 ]; then
-    # On remappe les chemins issus du .env si besoin
-    DATA_RAW_TRUSTPILOT="${DATA_RAW_TRUSTPILOT/$HOST_BASE/$DOCKER_BASE}"
-    DATA_EXPORTS="${DATA_EXPORTS/$HOST_BASE/$DOCKER_BASE}"
-    DATA_REPORT="${DATA_REPORT/$HOST_BASE/$DOCKER_BASE}"
-    DATA_PROCESSED="${DATA_PROCESSED/$HOST_BASE/$DOCKER_BASE}"
-    DATA_MODEL="${DATA_MODEL/$HOST_BASE/$DOCKER_BASE}"
-    WIKI_DATA_DIR="${WIKI_DATA_DIR/$HOST_BASE/$DOCKER_BASE}"
-    SPACY_MODELS="${SPACY_MODELS/$HOST_BASE/$DOCKER_BASE}"
-    NLTK_DATA="${NLTK_DATA/$HOST_BASE/$DOCKER_BASE}"
-    LOG_DIR="${LOG_DIR/$HOST_BASE/$DOCKER_BASE}"
-    DOCKER_DATA="${DOCKER_DATA/$HOST_BASE/$DOCKER_BASE}"
-    TMP_DIR="${TMP_DIR/$HOST_BASE/$DOCKER_BASE}"
-    MLFLOW_ARTIFACT_ROOT="${MLFLOW_ARTIFACT_ROOT/$HOST_BASE/$DOCKER_BASE}"
-    API_EXPORT_DIR="${API_EXPORT_DIR/$HOST_BASE/$DOCKER_BASE}"
-
-    BASE_DIR="$DOCKER_BASE"
-else
-    BASE_DIR="$HOST_BASE"
+    # Remapping simple host → docker
+    for var in DATA_RAW_TRUSTPILOT DATA_EXPORTS DATA_REPORT DATA_PROCESSED DATA_MODEL \
+               WIKI_DATA_DIR SPACY_MODELS NLTK_DATA LOG_DIR DOCKER_DATA TMP_DIR \
+               MLFLOW_ARTIFACT_ROOT API_EXPORT_DIR
+    do
+        eval value="\${$var}"
+        if [[ -n "$value" ]]; then
+            eval $var="${value/$HOST_BASE/$DOCKER_BASE}"
+        fi
+    done
 fi
 
-# Si LOG_DIR n'est pas défini ou vide → fallback sur BASE_DIR/logs
-if [ -z "${LOG_DIR:-}" ]; then
+# LOG_DIR fallback
+if [[ -z "${LOG_DIR:-}" ]]; then
     LOG_DIR="${BASE_DIR}/logs"
 fi
-
-# -------------------------------------------------------------
-# 4️⃣ Affichage du contexte (debug clair)
-# -------------------------------------------------------------
-if [ "$IN_DOCKER" -eq 1 ]; then
-    echo "🟦 Environnement détecté : AIRFLOW (Docker)"
-else
-    echo "🟩 Environnement détecté : HOST (machine locale)"
-fi
-
-echo "BASE_DIR            : $BASE_DIR"
-echo "DATA_RAW_TRUSTPILOT : ${DATA_RAW_TRUSTPILOT:-non défini}"
-echo "LOG_DIR             : $LOG_DIR"
-echo ""
-
-# -------------------------------------------------------------
-# 5️⃣ Répertoire de logs basé sur LOG_DIR
-# -------------------------------------------------------------
 mkdir -p "$LOG_DIR"
+
+
+# -------------------------------------------------------------
+# 4. Logfile unique & propre
+# -------------------------------------------------------------
 LOG_FILE="${LOG_DIR}/run_all_scraping_$(date '+%Y-%m-%d_%H-%M-%S').log"
 
-# Redirection console + fichier
+# Toute sortie console → logfile + console
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-# ============================================================== 
-# Fonctions utilitaires
-# ==============================================================
 
-get_timestamp() {
-    date '+%Y-%m-%d %H:%M:%S'
+# =============================================================
+# Utilities
+# =============================================================
+timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
+
+duration_hms() {
+    local s=$1
+    printf "%02dh %02dm %02ds" $((s/3600)) $(((s%3600)/60)) $((s%60))
 }
 
-calculate_duration() {
-    local start=$1
-    local end=$2
-    local diff=$((end - start))
-    local hours=$((diff / 3600))
-    local minutes=$(((diff % 3600) / 60))
-    local seconds=$((diff % 60))
-    printf "%02dh %02dm %02ds" "$hours" "$minutes" "$seconds"
+internet_ok() {
+    curl -Is --max-time 5 https://www.trustpilot.com | grep -q "HTTP"
 }
 
-# Vérifie la connexion Internet (HTTP, pas ping)
-check_internet_connection() {
-    if curl -Is --max-time 5 https://www.trustpilot.com | grep -q "HTTP"; then
-        return 0
-    else
-        echo "❌ ERREUR: Impossible d'accéder à https://www.trustpilot.com - problème réseau ou DNS"
-        return 1
-    fi
-}
 
-# Retourne la dernière page scrapée
+# =============================================================
+# Scraping Trustpilot
+# =============================================================
+SCRIPT_PYTHON="${BASE_DIR}/scripts/scraping/cde_scrap_new.py"
+
+if [[ ! -f "$SCRIPT_PYTHON" ]]; then
+    echo "❌ ERREUR : Script Python introuvable : $SCRIPT_PYTHON"
+    exit 1
+fi
+
+SOCIETES=("temu.com" "chronopost.fr" "tesla.com" "vinted.fr")
+MAX_PAGES=2
+
+
 get_last_page() {
-    local societe=$1
-    local domain_name
-    domain_name=$(echo "$societe" | cut -d'.' -f1)
-    local domain_dir="${DATA_RAW_TRUSTPILOT}/${domain_name}"
-    local last_page_file="${domain_dir}/derniere_page.txt"
-
-    if [ -f "$last_page_file" ]; then
-        cat "$last_page_file" 2>/dev/null
-    else
-        echo "0"
-    fi
+    local soc=$1
+    local domain="${soc%%.*}"
+    local file="${DATA_RAW_TRUSTPILOT}/${domain}/derniere_page.txt"
+    [[ -f "$file" ]] && cat "$file" || echo 0
 }
 
-# Scraper une société donnée
+
 scraper_societe() {
-    local societe=$1
+    local soc=$1
     local last_page
-    last_page=$(get_last_page "$societe")
-    local start_page=$((last_page + 1))
+    last_page=$(get_last_page "$soc")
+    local next_page=$((last_page + 1))
 
     echo "------------------------------------------------------------"
-    echo "[$(get_timestamp)] Début du scraping : $societe"
-    echo "Dernière page : $last_page | Prochaine : $start_page | Pages max : $MAX_PAGES"
+    echo "[$(timestamp)] Scraping : $soc | Dernière page : $last_page"
     echo "------------------------------------------------------------"
 
-    local start_time
-    start_time=$(date +%s)
-
-    if ! check_internet_connection; then
-        echo "⚠️  Connexion indisponible, pause 10 secondes..."
+    if ! internet_ok; then
+        echo "❌ Pas d’internet — pause 10s"
         sleep 10
         return 1
     fi
 
-    # Exécution du scraping Python
-    if echo -e "$societe\n$MAX_PAGES" | python3 "$SCRIPT_PYTHON"; then
-        local end_time
-        end_time=$(date +%s)
-        local duration
-        duration=$(calculate_duration "$start_time" "$end_time")
-        local new_last_page
-        new_last_page=$(get_last_page "$societe")
-        echo "✅ SUCCÈS: Scraping de $societe terminé — Durée : $duration"
-        echo "Nouvelle dernière page : $new_last_page"
+    local start=$(date +%s)
+
+    if echo -e "$soc\n$MAX_PAGES" | python3 "$SCRIPT_PYTHON"; then
+        local end=$(date +%s)
+        echo "✅ OK : $(duration_hms $((end-start)))"
         return 0
     else
-        local end_time
-        end_time=$(date +%s)
-        local duration
-        duration=$(calculate_duration "$start_time" "$end_time")
-        echo "❌ ÉCHEC: Scraping de $societe — Durée : $duration"
+        local end=$(date +%s)
+        echo "❌ ECHEC : $(duration_hms $((end-start)))"
         return 1
     fi
 }
 
-afficher_resume() {
-    echo "============================================================"
-    echo "RÉSUMÉ DES DERNIÈRES PAGES SCRAPÉES — $(get_timestamp)"
-    echo "Répertoire des données : $DATA_RAW_TRUSTPILOT"
-    echo "============================================================"
-    for societe in "${SOCIETES[@]}"; do
-        local last_page
-        last_page=$(get_last_page "$societe")
-        echo "$societe : dernière page = $last_page"
+
+resume_pages() {
+    echo "============= RÉSUMÉ DES PAGES SCRAPÉES ============="
+    echo "Répertoire RAW : $DATA_RAW_TRUSTPILOT"
+    for s in "${SOCIETES[@]}"; do
+        echo "$s : dernière page = $(get_last_page "$s")"
     done
+    echo "======================================================"
 }
 
-# ============================================================== 
-# Configuration et lancement
-# ==============================================================
 
-echo "============================================================" 
-echo "=== LANCEMENT DU SCRAPING TRUSTPILOT ==="
-echo "Date de lancement : $(get_timestamp)"
-echo "Fichier de log : $LOG_FILE"
-echo "Répertoire BASE_DIR : $BASE_DIR"
+# =============================================================
+#  Lancement
+# =============================================================
+echo "============================================================"
+echo "  SCRAPING TRUSTPILOT - début : $(timestamp)"
+echo "  BASE_DIR : $BASE_DIR"
+echo "  LOG_FILE : $LOG_FILE"
 echo "============================================================"
 
-# Vérification du script Python
-SCRIPT_PYTHON="${BASE_DIR}/scripts/scraping/cde_scrap_new.py"
-if [ ! -f "$SCRIPT_PYTHON" ]; then
-    echo "❌ Erreur : Le script Python $SCRIPT_PYTHON n'existe pas."
-    exit 1
-fi
-
-# Liste des sociétés à scraper
-SOCIETES=("temu.com" "chronopost.fr" "tesla.com" "vinted.fr")
-
-# Paramètres
-MAX_PAGES=2
-
-# Affichage de la config
-echo "DATA_RAW_TRUSTPILOT  : $DATA_RAW_TRUSTPILOT"
-echo "Script Python        : $SCRIPT_PYTHON"
+resume_pages
 echo ""
 
-# Résumé initial
-afficher_resume
-echo ""
+GLOBAL_START=$(date +%s)
 
-global_start_time=$(date +%s)
-
-# Boucle principale
-for societe in "${SOCIETES[@]}"; do
-    if scraper_societe "$societe"; then
-        sleep_time=$((10 + RANDOM % 11))
-        echo "⏳ Attente de ${sleep_time}s avant le prochain scraping..."
-        sleep "$sleep_time"
+for s in "${SOCIETES[@]}"; do
+    if scraper_societe "$s"; then
+        sleep $((10 + RANDOM % 10))
     else
-        echo "⚠️  Passage à la société suivante après erreur."
+        echo "⚠️  Passage à la société suivante..."
         sleep 5
     fi
 done
 
-# Résumé final
-global_end_time=$(date +%s)
-total_duration=$(calculate_duration "$global_start_time" "$global_end_time")
+GLOBAL_END=$(date +%s)
+echo ""
+resume_pages
+echo ""
 
-echo ""
-afficher_resume
-echo ""
 echo "============================================================"
-echo "✅ FIN DU SCRAPING TRUSTPILOT — $(get_timestamp)"
-echo "Durée totale : $total_duration"
-echo "Logs complets : $LOG_FILE"
+echo " FIN SCRAPING TRUSTPILOT — $(timestamp)"
+echo " Durée totale : $(duration_hms $((GLOBAL_END-GLOBAL_START)))"
+echo " Log complet : $LOG_FILE"
 echo "============================================================"
 
 
 # =============================================================
-# LANCEMENT DU SCRAPING WIKIPEDIA
+#  Scraping Wikipedia
 # =============================================================
 echo ""
 echo "============================================================"
-echo "=== LANCEMENT DU SCRAPING WIKIPEDIA ==="
-echo "Date : $(get_timestamp)"
-echo "Script : ${BASE_DIR}/scripts/scraping/cde_scrap_wiki.py"
+echo "  SCRAPING WIKIPEDIA"
 echo "============================================================"
 
 WIKI_SCRIPT="${BASE_DIR}/scripts/scraping/cde_scrap_wiki.py"
 
-if [ ! -f "$WIKI_SCRIPT" ]; then
-    echo "❌ Erreur : Le script $WIKI_SCRIPT est introuvable."
+if [[ -f "$WIKI_SCRIPT" ]]; then
+    python3 "$WIKI_SCRIPT" && \
+        echo "✅ Scraping Wikipedia : OK" || \
+        echo "❌ Scraping Wikipedia : ECHEC"
 else
-    if python3 "$WIKI_SCRIPT"; then
-        echo "✅ Scraping Wikipédia terminé avec succès."
-    else
-        echo "❌ Échec du scraping Wikipédia."
-    fi
+    echo "❌ Script Wikipedia introuvable : $WIKI_SCRIPT"
 fi
 
-echo ""
-afficher_resume
-echo ""
 echo "============================================================"
-echo "✅ FIN GLOBALE DU SCRAPING — $(get_timestamp)"
-echo "Durée totale : $total_duration"
-echo "Logs complets : $LOG_FILE"
+echo "  FIN TOTALE — $(timestamp)"
 echo "============================================================"

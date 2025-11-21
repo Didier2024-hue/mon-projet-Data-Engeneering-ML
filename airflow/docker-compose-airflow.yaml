@@ -45,6 +45,7 @@ services:
 
     command: >
       bash -c "
+      rm -f /opt/airflow/airflow-webserver.pid &&
       pip install --no-cache-dir -r /requirements_airflow.txt &&
       airflow db upgrade &&
       airflow webserver
@@ -99,7 +100,6 @@ services:
 
     mem_limit: 384m
     cpus: 0.60
-
 
 networks:
   cde_cde_net:

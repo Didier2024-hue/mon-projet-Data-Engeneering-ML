@@ -1,48 +1,63 @@
 #!/bin/bash
-# =====================================================
-# 🚀 Script de synchronisation : DEV → MAIN
-# =====================================================
-# ⚠️ ÉCRASE entièrement la branche MAIN distante.
-# Utiliser uniquement lorsque DEV est stable.
-# =====================================================
+set -euo pipefail
 
-set -e  # Stoppe le script en cas d'erreur
+# --- 0) Aller à la racine du dépôt ---
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || {
+  echo "❌ Ce script doit être lancé DANS un dépôt git."; exit 1;
+})
+cd "$REPO_ROOT"
+echo "📂 Repo : $REPO_ROOT"
 
-# Vérification : on doit être sur dev
-current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [ "$current_branch" != "dev" ]; then
-  echo "❌ Tu n'es pas sur la branche 'dev'."
-  echo "➡️  Fais : git checkout dev"
-  exit 1
-fi
-
-# Vérifier l'état du workspace
+# --- 1) Vérifier que l'arbre de travail est propre ---
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "⚠️ Il reste des changements non commités."
-  echo "➡️  Commit ou stash avant de synchroniser."
+  echo "❌ Le dépôt n'est pas propre (modifs non committées)."
+  echo "   Fais ton ./git_dev.sh (ou un commit/stash manuel) AVANT de lancer git_main.sh."
   exit 1
 fi
 
-# Message de commit (optionnel – traçabilité)
-msg=${1:-"Sync dev → main ($(date '+%Y-%m-%d %H:%M:%S'))"}
+# --- 2) Récupérer les dernières infos du remote ---
+echo "🌐 Fetch des infos du remote…"
+git fetch origin
 
-echo "🔄 Synchronisation DEV → MAIN"
-echo "ℹ️  Message : $msg"
+# --- 3) S'assurer que dev est à jour ---
+echo "🔍 Mise à jour de la branche dev…"
+if git show-ref --verify --quiet refs/heads/dev; then
+    git switch dev
+else
+    git checkout -b dev origin/dev
+fi
 
-# Supprimer la branche main locale si elle existe
-git branch -D main 2>/dev/null || true
+if ! git pull --ff-only origin dev 2>/dev/null; then
+    echo "⚠️ La branche dev diverge de origin/dev."
+    echo "   Fais un 'git pull --rebase origin dev' ou 'git merge origin/dev' manuellement."
+    exit 1
+fi
 
-# Créer main depuis dev
-git checkout -b main
+# --- 4) Passer sur main et la mettre à jour ---
+echo "🔍 Passage sur main…"
+if git show-ref --verify --quiet refs/heads/main; then
+    git switch main
+else
+    git checkout -b main origin/main
+fi
 
-# Créer un commit de traçabilité (optionnel)
-git commit --allow-empty -m "$msg"
+echo "🔄 Mise à jour de main depuis origin/main…"
+if ! git pull --ff-only origin main 2>/dev/null; then
+    echo "⚠️ La branche main diverge de origin/main."
+    echo "   Corrige manuellement (merge ou rebase) puis relance ce script."
+    exit 1
+fi
 
-# Push forcé
-echo "🚀 Push forcé vers remote/main..."
-git push origin main --force
+# --- 5) Merge dev -> main ---
+echo "🔀 Merge dev -> main…"
+if ! git merge --no-ff dev -m "Merge dev into main"; then
+    echo "❌ Conflits de merge."
+    echo "   Résous les conflits, fais 'git add …', 'git commit', puis 'git push origin main'."
+    exit 1
+fi
 
-# Retour sur dev
-git checkout dev
+# --- 6) Push main ---
+echo "⬆️ Push main vers origin/main…"
+git push origin main
 
-echo "✅ Synchronisation DEV → MAIN terminée"
+echo "✅ git_main.sh terminé : main contient maintenant le code de dev."

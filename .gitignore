@@ -434,3 +434,8 @@ data/model/randomforest_note.pkl
 data/processed/resources/xdg_cache/.cache/pip/http/5/d/c/7/d/5dc7d247c119bddffc9211e36d28b3f42f5b1bc1dedfc4cae1da30b2
 data/model/randomforest_sentiment.pkl
 data/model/randomforest_note.pkl
+
+# Auto-ignore large files
+data/processed/resources/xdg_cache/.cache/pip/http/5/d/c/7/d/5dc7d247c119bddffc9211e36d28b3f42f5b1bc1dedfc4cae1da30b2
+data/model/randomforest_sentiment.pkl
+data/model/randomforest_note.pkl

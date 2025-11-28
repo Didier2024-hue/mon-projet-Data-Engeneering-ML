@@ -1,0 +1,33 @@
+image: python:3.10
+
+stages:
+  - prepare
+  - lint
+  - test
+
+# before_script appliqué à TOUS les jobs
+default:
+  before_script:
+    - echo "Début CI — runner: $(hostname)"
+    # On ne bloque pas le pipeline si le script n'existe pas (pour l'instant)
+    - if [ -f ci/gitlab/scripts/env_info.sh ]; then bash ci/gitlab/scripts/env_info.sh; else echo 'env_info.sh absent (OK pour le moment)'; fi
+
+job_prepare:
+  stage: prepare
+  script:
+    - echo "Installation dépendances CI..."
+    - pip install -r requirements.txt pytest flake8
+
+job_lint:
+  stage: lint
+  script:
+    # temporaire, on mettra ton vrai script après
+    - echo "Lint en cours (placeholder)..."
+    # - bash ci/gitlab/scripts/lint.sh
+
+job_test:
+  stage: test
+  script:
+    # temporaire, on mettra ton vrai script après
+    - echo "Tests en cours (placeholder)..."
+    # - bash ci/gitlab/scripts/tests.sh

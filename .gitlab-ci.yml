@@ -8,7 +8,8 @@ stages:
 default:
   before_script:
     - echo "Installation dépendances CI..."
-    - if [ -f ci/gitlab/scripts/env_info.sh ]; then 
+    - |
+      if [ -f ci/gitlab/scripts/env_info.sh ]; then
         bash ci/gitlab/scripts/env_info.sh
       else
         echo "env_info.sh absent (OK pour le moment)"
@@ -24,10 +25,8 @@ job_lint:
   stage: lint
   script:
     - echo "Lint en cours (placeholder)..."
-    # - bash ci/gitlab/scripts/lint.sh
 
 job_test:
   stage: test
   script:
     - echo "Tests en cours (placeholder)..."
-    # - bash ci/gitlab/scripts/tests.sh

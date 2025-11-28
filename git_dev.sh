@@ -135,37 +135,21 @@ analyze_changes() {
 # --- Fonction d'ajout sécurisé des fichiers ---
 safe_add_files() {
     log_info "Ajout sécurisé des fichiers..."
-    
-    # Exclure les fichiers volumineux de l'ajout automatique
-    local exclude_patterns=(
-        "*.pkl"
-        "*.model"
-        "*.h5"
-        "*.zip"
-        "*.tar.gz"
-        "data/model/*"
-        "data/processed/resources/*"
-    )
-    
-    # Ajouter les fichiers modifiés et supprimés
-    if ! git add -A; then
-        log_error "Échec lors de l'ajout des fichiers"
-        log_info "Vérification des problèmes de permissions..."
-        
-        # Tentative de résolution des problèmes de permissions
-        if [ ! -w ".git/objects" ]; then
-            log_error "Permissions insuffisantes - réparation nécessaire"
-            exit 1
-        fi
-        
-        # Réessayer avec une approche plus conservative
-        log_info "Tentative alternative d'ajout..."
-        git reset
-        git add -u  # seulement les fichiers suivis
-    fi
-    
-    log_success "Fichiers ajoutés avec succès"
+
+    # Ne PAS ajouter automatiquement les fichiers non suivis
+    # Ajoute uniquement :
+    #   - fichiers MODIFIÉS
+    #   - fichiers SUPPRIMÉS
+    # Jamais de nouveaux fichiers (sauf si le user le fait volontairement)
+    git add -u
+
+    # Affiche ce qui sera committé
+    log_info "📦 Contenu du staging area :"
+    git diff --cached --name-only
+
+    log_success "Ajout sécurisé effectué (git add -u)"
 }
+
 
 # --- Fonction de création du commit ---
 create_commit() {

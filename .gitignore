@@ -15,7 +15,7 @@ __pycache__/
 # ============================================
 # DONNÉES & FICHIERS LOURDS
 # ============================================
-data/
+data/   # tu ignores tout (comme demandé)
 spacy_models/
 swapfile
 *.swp
@@ -32,10 +32,15 @@ data/model/*.onnx
 # ============================================
 # DOCKER
 # ============================================
-docker/
+docker/overlay2/
 docker-data/
-docker-compose.override.yml
-docker-compose.backup.yml
+docker/volumes/
+docker/_data/
+
+# Garder les Dockerfile & configs
+!docker/*.Dockerfile
+!docker/Dockerfile
+!docker-compose*.yml
 
 # ============================================
 # MLflow
@@ -43,8 +48,6 @@ docker-compose.backup.yml
 mlruns/
 mlartifacts/
 mlflow.log
-LOGFILE_ML
---default-artifact-root/
 
 # ============================================
 # MODELS (scripts gardés, poids ignorés)
@@ -55,7 +58,6 @@ scripts/models/*.bin
 scripts/models/*.onnx
 scripts/models/*.h5
 scripts/models/*.sav
-scripts/models/*.onnx
 
 # Garder le code Python
 !scripts/**/*.py
@@ -82,8 +84,6 @@ snapd_backup/
 lost+found/
 __cache__/
 tmp_cache/
-
-# HuggingFace cache
 .cache/huggingface/
 
 # ============================================
@@ -104,21 +104,11 @@ tmp_cache/
 *.pem
 *.crt
 *.secrets
-
-# ============================================
-# SPÉCIFIQUE À TON PROJET
-# ============================================
-
-# GitLab Runner (binaire système → NE DOIT PAS ÊTRE DANS GIT)
-gitlab-runner/
-
-# Docker overlay artifacts (créés par Hyper-V)
-docker/overlay2/
-
-# git credentials et cde_backu_git
 .git-credentials
-cde_backup_git/
 
 # ============================================
-# AUTO-GENERATED (nettoyé)
+# SPÉCIFIQUE AU PROJET
 # ============================================
+gitlab-runner/
+docker/overlay2/
+cde_backup_git/

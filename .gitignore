@@ -115,6 +115,10 @@ gitlab-runner/
 # Docker overlay artifacts (créés par Hyper-V)
 docker/overlay2/
 
+# git credentials et cde_backu_git
+.git-credentials
+cde_backup_git/
+
 # ============================================
 # AUTO-GENERATED (nettoyé)
 # ============================================

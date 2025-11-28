@@ -7,9 +7,8 @@ stages:
 
 default:
   before_script:
-    - echo "Début CI — runner: $(hostname)"
-    - |
-      if [ -f ci/gitlab/scripts/env_info.sh ]; then 
+    - echo "Installation dépendances CI..."
+    - if [ -f ci/gitlab/scripts/env_info.sh ]; then 
         bash ci/gitlab/scripts/env_info.sh
       else
         echo "env_info.sh absent (OK pour le moment)"

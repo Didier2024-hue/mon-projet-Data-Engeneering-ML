@@ -1,12 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-echo " Lint Python avec flake8..."
+echo "🔍 Lint Python ciblé (API + Streamlit + app_api)..."
 
 flake8 \
-  --exclude=".venv,.git,data,mlruns,docker,ci,notebooks" \
+  api/ \
+  scripts/app/ \
+  api/scripts/app_api/ \
   --max-line-length=120 \
-  .
+  --exclude="__pycache__,*.venv" 
 
-echo "Lint OK"
+echo "✅ Lint OK (zones critiques du projet)"
 

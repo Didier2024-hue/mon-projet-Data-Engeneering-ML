@@ -1,4 +1,3 @@
-# .gitlab-ci.yml - VERSION FINALE COMPLÈTE
 image: python:3.10
 
 stages:
@@ -6,81 +5,28 @@ stages:
   - lint
   - test
 
-# ============================================
-# STAGE 1: PREPARE - Installation
-# ============================================
 install_dependencies:
   stage: prepare
   script:
-    - echo "📦 STAGE 1: PREPARE"
-    - echo "────────────────────"
-    - echo "Installation de toutes les dépendances..."
+    - echo "STAGE 1: PREPARE - Installation"
     - pip install --upgrade pip
     - pip install pymongo pytest flake8
-    # Si tu as un requirements.txt, installe-le aussi
-    - if [ -f "requirements.txt" ]; then pip install -r requirements.txt; fi
-    - echo "✅ Dépendances installées:"
-    - pip list | grep -E "(pymongo|pytest|flake8)"
-    - echo "🎯 Prêt pour les étapes suivantes"
+    - echo "Dépendances installées"
 
-# ============================================
-# STAGE 2: LINT - Analyse qualité
-# ============================================
 check_code_quality:
   stage: lint
   script:
-    - echo "🔍 STAGE 2: LINT"
-    - echo "────────────────"
-    - echo "Analyse qualité du code API..."
-    
-    # Vérifie si ton script existe
-    - if [ -f "ci/gitlab/scripts/lint.sh" ]; then
-        echo "📄 Utilisation du script lint.sh..."
-        bash ci/gitlab/scripts/lint.sh || echo "⚠️  Lint terminé avec suggestions"
-      else
-        echo "📄 Script non trouvé, exécution directe flake8..."
-        python -m flake8 \
-          api/ \
-          api/scripts/app_api/ \
-          --max-line-length=200 \
-          --ignore=E302,E305,E402,E501,W293,W391,F401,F841,E704,E241,W291,E226,E303 \
-          --count \
-          --statistics || echo "✅ Analyse qualité complétée"
-      fi
-    
-    - echo "🎯 Lint stage terminé"
-  needs: ["install_dependencies"]  # S'exécute après prepare
-  allow_failure: true  # Ne bloque pas si warnings
+    - echo "STAGE 2: LINT - Analyse qualité"
+    - python -m flake8 api/ --max-line-length=200 --count --statistics
+    - echo "Lint terminé"
+  needs: ["install_dependencies"]
+  allow_failure: true
 
-# ============================================
-# STAGE 3: TEST - Exécution tests
-# ============================================
 run_all_tests:
   stage: test
   script:
-    - echo "🧪 STAGE 3: TEST"
-    - echo "────────────────"
-    - echo "Lancement de la suite de tests..."
-    
-    # OPTION A: Tous les tests (comme sur ta machine)
-    - echo "🚀 Exécution: pytest -v (comme en local)"
-    - python -m pytest -v --tb=short 2>&1 | tail -50
-    
-    # OPTION B: Avec MongoDB mock si tu veux
-    # - pip install mongomock
-    # - MONGO_URI="mongomock://localhost" python -m pytest -v --tb=short
-    
-    - echo "📊 Résumé des tests..."
-    - python -m pytest --co -q | wc -l | xargs echo "Nombre de tests découverts:"
-    
-    - echo "🎯 Test stage terminé"
-    - echo ""
-    - echo "🎉 🎉 🎉 CI COMPLÈTE !"
-    - echo "════════════════════════════════"
-    - echo "✅ 3 STAGES RÉUSSIS:"
-    - echo "   1. 📦 PREPARE - Dépendances"
-    - echo "   2. 🔍 LINT    - Qualité code"
-    - echo "   3. 🧪 TEST    - Validation"
-    - echo ""
-    - echo "🔗 Pipeline: $CI_PIPELINE_URL"
-  needs: ["install_dependencies"]  # S'exécute après prepare
+    - echo "STAGE 3: TEST - Exécution"
+    - python -m pytest -v --tb=short
+    - echo "TESTS TERMINÉS"
+    - echo "CI RÉUSSIE - 3 STAGES COMPLÉTÉS"
+  needs: ["install_dependencies"]

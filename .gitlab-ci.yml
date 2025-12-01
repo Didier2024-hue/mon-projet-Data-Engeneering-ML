@@ -35,7 +35,7 @@ run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
-    - pip install pymongo pytest fastapi uvicorn python-dotenv httpx python-jose
+    - pip install pymongo pytest fastapi uvicorn python-dotenv httpx python-jose passlib bcrypt
     - python -m pytest api/tests/ -v --tb=short
     - echo "✅ Tests terminés"
     - echo ""

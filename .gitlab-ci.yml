@@ -28,34 +28,46 @@ check_code_quality:
   needs: ["install_dependencies"]
   allow_failure: true
 
+
 # ============================================
-# STAGE 3: TEST (AVEC AWK PATCH)
+# STAGE 3: TEST (PATCH AWK)
 # ============================================
 run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
-    # 1. Installation
+
+    # 1. Installation deps
     - pip install pymongo pytest fastapi uvicorn python-dotenv httpx python-jose passlib bcrypt
-    
-    # 2. Création .env.api
+
+    # 2. Création du .env.api
     - echo "MONGO_URI=mongodb://localhost:27017" > api/.env.api
     - echo "MONGO_DB=test" >> api/.env.api
-    
-    # 3. PATCH AVEC AWK (pas de problème de fermeture)
-    - awk 'NR==25{print "    print(\"✅ MONGO_URI et MONGO_DB définis\")"} NR==49{print "    print(\"✅ Mock MongoDB connection\")"} NR==51{print "    return None, None  # Mock pour tests CI"} NR!=25 && NR!=49 && NR!=51{print}' api/services/mongo_service.py > /tmp/patched.py && mv /tmp/patched.py api/services/mongo_service.py
-    
-    # 4. Variables d'environnement
+
+    # 3. PATCH AWK ROBUSTE
+    - |
+      awk '
+        NR==25 { print "    print(\"✅ MONGO_URI et MONGO_DB définis\")" }
+        NR==49 { print "    print(\"✅ Mock MongoDB connection\")" }
+        NR==51 { print "    return None, None  # Mock pour tests CI" }
+        { print }
+      ' api/services/mongo_service.py > /tmp/patched.py
+
+    # 4. Remplacement du fichier patché
+    - mv /tmp/patched.py api/services/mongo_service.py
+
+    # 5. Variables d'environnement
     - export MONGO_URI="mongodb://localhost:27017"
     - export MONGO_DB="test"
-    
-    # 5. Lancement tests
+
+    # 6. Exécution des tests
     - python -m pytest api/tests/ -v --tb=short
-    
-    # 6. Restauration
+
+    # 7. Restauration du fichier original après tests
     - git checkout -- api/services/mongo_service.py 2>/dev/null || true
-    
-    # 7. Succès
+
+    # 8. OK final
     - echo "✅ Tests terminés"
     - echo "🎉 CI RÉUSSIE 3 STAGES"
+
   needs: ["install_dependencies"]

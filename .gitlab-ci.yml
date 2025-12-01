@@ -27,7 +27,7 @@ check_code_quality:
   allow_failure: true
 
 # -------------------------------------------------
-# STAGE 3 — TEST (dans ton Docker fastapi-cde)
+# STAGE 3 — TEST DANS TON DOCKER fastapi-cde
 # -------------------------------------------------
 run_all_tests:
   stage: test
@@ -35,29 +35,52 @@ run_all_tests:
   services:
     - name: docker:23.0.1-dind
       command: ["--tls=false"]
+
   variables:
     DOCKER_HOST: "tcp://docker:2375"
     DOCKER_TLS_CERTDIR: ""
+
   before_script:
     - apk add --no-cache docker-cli-compose
 
   script:
-    - echo "📄 Création du fichier api/.env.api (nécessaire à FastAPI)"
+    # -----------------------
+    # 1. Créer le .env racine pour docker-compose
+    # -----------------------
+    - echo "📄 Création du fichier .env (docker-compose en a besoin)"
+    - echo "AUTH_MODE=full" > .env
+
+    # -----------------------
+    # 2. Créer api/.env.api (FastAPI en a besoin)
+    # -----------------------
+    - echo "📄 Création du fichier api/.env.api"
     - mkdir -p api
     - echo "MONGO_URI=mongodb://mongo-cde:27017" > api/.env.api
     - echo "MONGO_DB=trustpilot" >> api/.env.api
     - echo "MLFLOW_TRACKING_URI=http://mlflow:5000" >> api/.env.api
     - echo "AUTH_MODE=full" >> api/.env.api
 
+    # -----------------------
+    # 3. Démarrer docker-compose
+    # -----------------------
     - echo "🐳 Démarrage docker-compose"
     - docker compose up -d
 
+    # -----------------------
+    # 4. Attendre que fastapi-cde soit up
+    # -----------------------
     - echo "⏳ Attente du service fastapi-cde..."
     - sleep 25
 
+    # -----------------------
+    # 5. Vérifier les conteneurs
+    # -----------------------
     - echo "🔍 Status des conteneurs :"
     - docker ps -a
 
+    # -----------------------
+    # 6. Exécuter les tests dans fastapi-cde
+    # -----------------------
     - echo "🧪 Exécution de pytest dans fastapi-cde"
     - docker exec fastapi-cde pytest -v
 

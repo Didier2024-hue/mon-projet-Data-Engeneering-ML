@@ -15,6 +15,7 @@ install_dependencies:
     - pip install pymongo pytest
   tags: []
 
+
 # -------------------------------------------
 # STAGE 2 — LINT (NON BLOQUANT)
 # -------------------------------------------
@@ -27,35 +28,57 @@ check_code_quality:
   allow_failure: true
   tags: []
 
+
 # -------------------------------------------
-# STAGE 3 — TEST (AVEC MOCK MONGO)
+# STAGE 3 — TEST AVEC MOCK MONGO
 # -------------------------------------------
 run_all_tests:
   stage: test
   script:
-    # Dépendances nécessaires
+
+    # Dépendances nécessaires aux tests
     - pip install pymongo pytest fastapi uvicorn python-dotenv httpx python-jose passlib bcrypt
 
-    # Petit .env (ton API le demande)
+    # Création du fichier .env.api (attendu par ton code)
     - echo "MONGO_URI=mongodb://localhost:27017" > api/.env.api
     - echo "MONGO_DB=test" >> api/.env.api
 
-    # MOCK Mongo (simple, fiable, compatible db["users"])
+    # Mock MongoDB COMPLET et COMPATIBLE avec ton code
     - |
       cat > api/services/mongo_service.py << 'EOF'
+      import re
+
+      # ===== MOCK des Collections =====
       class FakeCollection:
-          def find(self, *args, **kwargs): return []
+          def find(self, *args, **kwargs): return FakeCursor([])
+          def sort(self, *args, **kwargs): return FakeCursor([])
+          def skip(self, *args, **kwargs): return FakeCursor([])
+          def limit(self, *args, **kwargs): return FakeCursor([])
           def find_one(self, *args, **kwargs): return None
+
           def insert_one(self, *args, **kwargs):
               class Result: inserted_id = "mock_id"
               return Result()
+
           def update_one(self, *args, **kwargs):
               class Result: modified_count = 1
               return Result()
+
           def delete_one(self, *args, **kwargs):
               class Result: deleted_count = 1
               return Result()
 
+      class FakeCursor:
+          def __init__(self, data):
+              self.data = data
+
+          def sort(self, *args, **kwargs): return self
+          def skip(self, *args, **kwargs): return self
+          def limit(self, *args, **kwargs): return self
+          def __iter__(self): return iter(self.data)
+
+
+      # ===== MOCK DB =====
       class FakeDB:
           def __getitem__(self, name):
               return FakeCollection()
@@ -63,13 +86,42 @@ run_all_tests:
       client = None
       db = FakeDB()
 
-      def get_mongo_db(uri, db_name, max_retries=5):
-          print("⚠️ Mock MongoDB — no real connection")
+      collection_avis = FakeCollection()
+      collection_societes = FakeCollection()
+
+      # -----------------------
+      # Helpers mock
+      # -----------------------
+      def _build_regex_pattern(s: str):
+          if not s:
+              return None
+          return {"$regex": re.escape(s.strip()), "$options": "i"}
+
+      # -----------------------
+      # Fonctions mockées
+      # -----------------------
+      def get_last_comments(societe_id: str = None, limit: int = 100, skip: int = 0):
+          return []
+
+      def list_societes(limit: int = 1000):
+          return []
+
+      def get_top_avis(societe_id: str, limit: int = 10, positif: bool = True):
+          return []
+
+      # -----------------------
+      # Signature identique
+      # -----------------------
+      def get_mongo_db(uri, db_name, max_retries=5, retry_delay=3):
+          print("⚠️ CI MODE: Fake MongoDB — no real connection")
           return None, FakeDB()
       EOF
 
-    # Tests réels
+    # Exécution des tests
     - python -m pytest api/tests/ -v --tb=short
+
+    # Succès
+    - echo "✅ Tests terminés (CI OK)"
 
   needs: ["install_dependencies"]
   tags: []

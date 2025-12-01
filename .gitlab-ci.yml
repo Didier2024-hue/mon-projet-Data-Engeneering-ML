@@ -38,5 +38,5 @@ run_all_tests:
     - python -m pytest -v --tb=short
     - echo "✅ Tests terminés"
     - echo ""
-    - echo "🎉 CI RÉUSSIE - 3 STAGES : prepare, lint, test"
+    - echo "🎉 CI RÉUSSIE - 3 STAGES prepare, lint, test"
   needs: ["install_dependencies"]

@@ -1,33 +1,47 @@
-# .gitlab-ci.yml - VERSION FINALE CORRECTE
 image: python:3.10
 
 stages:
   - prepare
-  - lint   # ⬅️ EN MINUSCULE
+  - lint
   - test
 
+# ============================================
+# STAGE 1: PREPARE (installation dans SON Docker)
+# ============================================
 install_dependencies:
   stage: prepare
   script:
-    - echo "STAGE 1:PREPARE - Installation"
+    - echo "📦 STAGE 1: PREPARE"
+    - echo "Installation dans Docker frais..."
     - pip install --upgrade pip
     - pip install pymongo pytest flake8
-    - echo "Dépendances installées"
+    - echo "✅ Dépendances installées (dans CE Docker seulement)"
 
+# ============================================
+# STAGE 2: LINT (nouveau Docker, installe flake8)
+# ============================================
 check_code_quality:
-  stage: lint  # ⬅️ DOIT CORRESPONDRE AU NOM DANS "stages:"
+  stage: lint
   script:
-    - echo "STAGE 2:LINT - Analyse qualité"
+    - echo "🔍 STAGE 2: LINT"
+    - echo "Nouveau Docker, installation flake8..."
+    - pip install flake8
     - python -m flake8 api/ --max-line-length=200 --count --statistics
-    - echo "Lint terminé"
+    - echo "✅ Lint terminé"
   needs: ["install_dependencies"]
   allow_failure: true
 
+# ============================================
+# STAGE 3: TEST (nouveau Docker, installe pymongo+pytest)
+# ============================================
 run_all_tests:
   stage: test
   script:
-    - echo "STAGE 3:TEST - Exécution"
+    - echo "🧪 STAGE 3: TEST"
+    - echo "Nouveau Docker, installation pymongo+pytest..."
+    - pip install pymongo pytest
     - python -m pytest -v --tb=short
-    - echo "TESTS TERMINÉS"
-    - echo "CI RÉUSSIE - 3 STAGES COMPLÉTÉS"
+    - echo "✅ Tests terminés"
+    - echo ""
+    - echo "🎉 CI RÉUSSIE - 3 STAGES, 3 DOCKERS"
   needs: ["install_dependencies"]

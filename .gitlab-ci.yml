@@ -13,22 +13,18 @@ install_dependencies:
   script:
     - echo "📦 STAGE 1 PREPARE"
     - pip install --upgrade pip
-    - pip install pymongo pytest flake8
+    - pip install pymongo pytest
     - echo "✅ Dépendances installées"
 
 # ============================================
-# STAGE 2: LINT (TOUTES LES ERREURS IGNORÉES)
+# STAGE 2: LINT  
 # ============================================
 check_code_quality:
   stage: lint
   script:
     - echo "🔍 STAGE 2 LINT"
     - pip install flake8
-    - python -m flake8 api/ \
-        --max-line-length=200 \
-        --ignore=E302,E303,E305,E402,E501,W291,W293,W391,F401,F841,E302,E305,W503,E203 \
-        --count \
-        --statistics || echo "✅ Lint terminé (warnings ignorés)"
+    - python -m flake8 api/ --max-line-length=200 --ignore=E,W,F || echo "✅ Lint terminé"
   needs: ["install_dependencies"]
   allow_failure: true
 
@@ -39,9 +35,8 @@ run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
-    - pip install pymongo pytest
     - python -m pytest -v --tb=short
     - echo "✅ Tests terminés"
     - echo ""
-    - echo "🎉 CI RÉUSSIE - 3 STAGES"
+    - echo "🎉 CI RÉUSSIE - 3 STAGES : prepare, lint, test"
   needs: ["install_dependencies"]

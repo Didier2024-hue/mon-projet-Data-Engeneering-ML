@@ -5,67 +5,51 @@ stages:
   - lint
   - test
 
-# Cache global pour pip (accélère les builds)
 cache:
   paths:
     - .cache/pip/
   key: "python-deps-$CI_COMMIT_REF_SLUG"
-  policy: pull-push
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 # ============================================
-# STAGE 1: PREPARE (installation unique)
+# STAGE 1: PREPARE
 # ============================================
 install_dependencies:
   stage: prepare
   script:
+    # Version simple sans $(...) dans echo
     - echo "📦 PREPARE - Installation des dépendances"
-    - echo "Python version: $(python --version)"
-    - echo "Pip version: $(pip --version)"
+    - echo "Vérification versions:"
+    - python --version
+    - pip --version
     - pip install --upgrade pip
     - pip install -r requirements.txt pytest flake8
-    - echo "✅ Dépendances installées avec succès"
+    - echo "✅ Dépendances installées"
   artifacts:
     paths:
       - .cache/pip/
     expire_in: 1 hour
-  cache:
-    paths:
-      - .cache/pip/
-    policy: push  # Crée le cache ici
 
 # ============================================
-# STAGE 2: LINT (utilise le cache)
+# STAGE 2: LINT
 # ============================================
 run_lint:
   stage: lint
   script:
     - echo "🔍 LINT - Analyse qualité du code"
-    - echo "Vérification packages:"
-    - pip list | grep -E "(flake8|pytest)" || true
     - bash ci/gitlab/scripts/lint.sh || echo "⚠️  Lint warnings (non bloquant)"
-  needs: ["install_dependencies"]  # S'exécute APRÈS prepare
-  allow_failure: true  # Continue même avec warnings
-  cache:
-    paths:
-      - .cache/pip/
-    policy: pull  # Utilise le cache existant
+  needs: ["install_dependencies"]
+  allow_failure: true
 
 # ============================================
-# STAGE 3: TEST (utilise le cache)
+# STAGE 3: TEST
 # ============================================
 run_tests:
   stage: test
   script:
     - echo "🧪 TEST - Exécution des tests unitaires"
-    - echo "Packages disponibles:"
-    - pip list | grep pytest || echo "Installation automatique..."
     - python -m pytest -q -v --tb=short
     - echo "✅ Tests terminés avec succès"
-  needs: ["install_dependencies"]  # S'exécute APRÈS prepare
-  cache:
-    paths:
-      - .cache/pip/
-    policy: pull
+  needs: ["install_dependencies"]

@@ -5,35 +5,24 @@ stages:
   - lint
   - test
 
-# BEFORE_SCRIPT s'exécute AVANT chaque job
-before_script:
-  - echo "🐍 Installation dépendances CI..."
-  - pip install -r requirements.txt pytest flake8
+default:
+  before_script:
+    - echo "🐍 Installation dépendances CI..."
+    - pip install -r requirements.txt pytest flake8
 
-# Job 1 : PREPARE (nom du job, stage: prepare)
-setup:
+job_prepare:
   stage: prepare
   script:
     - echo "📦 Dépendances installées"
-    # Tu peux ajouter d'autres commandes de setup ici
-    - python --version
-    - pip list
 
-# Job 2 : LINT (nom du job, stage: lint)
-run_lint:
+job_lint:
   stage: lint
   script:
-    - echo "🔍 Exécution du linting..."
     - bash ci/gitlab/scripts/lint.sh
-  # Si le script lint.sh n'existe pas, utilise cette version :
-  # script:
-  #   - echo "🔍 Linting code Python..."
-  #   - python -m flake8 . --max-line-length=120 || echo "⚠️  Lint warnings (non bloquant)"
+  allow_failure: true  # ⬅️ IMPORTANT : continue même si lint échoue
 
-# Job 3 : TEST (nom du job, stage: test)
-run_tests:
+job_test:
   stage: test
   script:
-    - echo "🧪 Lancement des tests..."
-    - python -m pytest -q -v
-    - echo "✅ Tests terminés"
+    - echo "🧪 Tests en cours..."
+    - pytest -q

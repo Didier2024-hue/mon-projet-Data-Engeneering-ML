@@ -24,7 +24,10 @@ check_code_quality:
   script:
     - echo "🔍 STAGE 2 LINT"
     - pip install flake8
-    - python -m flake8 api/ --max-line-length=200 --ignore=E,W,F || echo "✅ Lint terminé"
+    - python -m flake8 api/ \
+        --max-line-length=200 \
+        --ignore=E302,E303,E305,E402,E501,W291,W293,W391,F401,F841 \
+        --count --statistics || echo "✅ Lint check terminé"
   needs: ["install_dependencies"]
   allow_failure: true
 
@@ -35,9 +38,11 @@ run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
-    - pip install pymongo pytest fastapi uvicorn python-dotenv httpx python-jose passlib bcrypt
+    - pip install pymongo pytest fastapi uvicorn python-dotenv httpx python-jose passlib bcrypt mongomock
+    # Définit les variables d'environnement pour les tests
+    - export MONGO_URI="mongomock://localhost"
+    - export MONGO_DB="test_db"
     - python -m pytest api/tests/ -v --tb=short
     - echo "✅ Tests terminés"
-    - echo ""
-    - echo "🎉 CI RÉUSSIE - 3 STAGES prepare, lint, test"
+    - echo "🎉 CI RÉUSSIE 3 STAGES"
   needs: ["install_dependencies"]

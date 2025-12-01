@@ -1,37 +1,27 @@
 image: python:3.10
 
 stages:
-  - prepare
   - lint
   - test
 
 # -------------------------------------------------
-# STAGE 1 — PREPARE
-# -------------------------------------------------
-install_dependencies:
-  stage: prepare
-  script:
-    - pip install --upgrade pip
-    - pip install pymongo pytest
-  needs: []
-
-# -------------------------------------------------
-# STAGE 2 — LINT
+# STAGE 1 — LINT
 # -------------------------------------------------
 check_code_quality:
   stage: lint
   script:
+    - pip install --upgrade pip
     - pip install flake8
     - python -m flake8 api/ --max-line-length=200 --ignore=E302,E303,E305,E402,E501,W291,W293,W391,F401,F841 --count --statistics || true
-  needs: ["install_dependencies"]
   allow_failure: true
 
 # -------------------------------------------------
-# STAGE 3 — TEST DANS TON DOCKER fastapi-cde
+# STAGE 2 — TEST DANS TON DOCKER fastapi-cde
 # -------------------------------------------------
 run_all_tests:
   stage: test
   image: docker:23.0.1
+
   services:
     - name: docker:23.0.1-dind
       command: ["--tls=false"]
@@ -47,18 +37,18 @@ run_all_tests:
     # -----------------------
     # 1. Créer le .env racine pour docker-compose
     # -----------------------
-    - echo "📄 Création du fichier .env (docker-compose en a besoin)"
-    - echo "AUTH_MODE=full" > .env
+    - echo "📄 Création du fichier .env (pour docker-compose)"
+    - echo "AUTH_MODE=off" > .env
 
     # -----------------------
-    # 2. Créer api/.env.api (FastAPI en a besoin)
+    # 2. Créer api/.env.api (pour FastAPI)
     # -----------------------
     - echo "📄 Création du fichier api/.env.api"
     - mkdir -p api
     - echo "MONGO_URI=mongodb://mongo-cde:27017" > api/.env.api
     - echo "MONGO_DB=trustpilot" >> api/.env.api
     - echo "MLFLOW_TRACKING_URI=http://mlflow:5000" >> api/.env.api
-    - echo "AUTH_MODE=full" >> api/.env.api
+    - echo "AUTH_MODE=off" >> api/.env.api
 
     # -----------------------
     # 3. Démarrer docker-compose
@@ -67,23 +57,21 @@ run_all_tests:
     - docker compose up -d
 
     # -----------------------
-    # 4. Attendre que fastapi-cde soit up
+    # 4. Attendre que fastapi-cde soit prêt
     # -----------------------
     - echo "⏳ Attente du service fastapi-cde..."
     - sleep 25
 
     # -----------------------
-    # 5. Vérifier les conteneurs
+    # 5. Afficher l’état des conteneurs
     # -----------------------
     - echo "🔍 Status des conteneurs :"
     - docker ps -a
 
     # -----------------------
-    # 6. Exécuter les tests dans fastapi-cde
+    # 6. Exécuter les tests
     # -----------------------
     - echo "🧪 Exécution de pytest dans fastapi-cde"
     - docker exec fastapi-cde pytest -v
 
     - echo "🎉 Tests terminés avec succès !"
-
-  needs: ["install_dependencies"]

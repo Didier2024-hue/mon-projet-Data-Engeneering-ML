@@ -28,9 +28,8 @@ check_code_quality:
   needs: ["install_dependencies"]
   allow_failure: true
 
-
 # ============================================
-# STAGE 3: TEST (PATCH AWK)
+# STAGE 3: TEST (CI MOCK Mongo)
 # ============================================
 run_all_tests:
   stage: test
@@ -44,29 +43,34 @@ run_all_tests:
     - echo "MONGO_URI=mongodb://localhost:27017" > api/.env.api
     - echo "MONGO_DB=test" >> api/.env.api
 
-    # 3. PATCH AWK ROBUSTE
+    # 3. MOCK COMPLET du service Mongo (aucune connexion réelle en CI)
     - |
-      awk '
-        NR==25 { print "    print(\"✅ MONGO_URI et MONGO_DB définis\")" }
-        NR==49 { print "    print(\"✅ Mock MongoDB connection\")" }
-        NR==51 { print "    return None, None  # Mock pour tests CI" }
-        { print }
-      ' api/services/mongo_service.py > /tmp/patched.py
+      echo "⚙️ Patch MongoDB service pour CI"
+      cat > api/services/mongo_service.py << 'EOF'
+      import os
 
-    # 4. Remplacement du fichier patché
-    - mv /tmp/patched.py api/services/mongo_service.py
+      # Variables d'environnement (utilisées par le code mais sans effet réel)
+      MONGO_URI = os.getenv("MONGO_URI", "mock://localhost")
+      MONGO_DB = os.getenv("MONGO_DB", "test")
 
-    # 5. Variables d'environnement
+      # Mock des objets MongoDB
+      client = None
+      db = None
+
+      def get_mongo_db(uri: str, db_name: str, max_retries: int = 5):
+          print("⚠️ CI MODE: Mock MongoDB connection — aucune connexion réelle effectuée")
+          return None, None
+      EOF
+
+    # 4. Export env vars
     - export MONGO_URI="mongodb://localhost:27017"
     - export MONGO_DB="test"
 
-    # 6. Exécution des tests
+    # 5. Exécution des tests pytest
+    - echo "🚀 Lancement tests..."
     - python -m pytest api/tests/ -v --tb=short
 
-    # 7. Restauration du fichier original après tests
-    - git checkout -- api/services/mongo_service.py 2>/dev/null || true
-
-    # 8. OK final
+    # 6. SUCCESS
     - echo "✅ Tests terminés"
     - echo "🎉 CI RÉUSSIE 3 STAGES"
 

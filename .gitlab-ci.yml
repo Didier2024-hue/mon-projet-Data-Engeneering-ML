@@ -9,7 +9,7 @@ stages:
 install_dependencies:
   stage: prepare
   script:
-    - echo "STAGE 1: PREPARE - Installation"
+    - echo "STAGE 1:PREPARE - Installation"
     - pip install --upgrade pip
     - pip install pymongo pytest flake8
     - echo "Dépendances installées"
@@ -17,7 +17,7 @@ install_dependencies:
 check_code_quality:
   stage: lint  # ⬅️ DOIT CORRESPONDRE AU NOM DANS "stages:"
   script:
-    - echo "STAGE 2: LINT - Analyse qualité"
+    - echo "STAGE 2:LINT - Analyse qualité"
     - python -m flake8 api/ --max-line-length=200 --count --statistics
     - echo "Lint terminé"
   needs: ["install_dependencies"]
@@ -26,7 +26,7 @@ check_code_quality:
 run_all_tests:
   stage: test
   script:
-    - echo "STAGE 3: TEST - Exécution"
+    - echo "STAGE 3:TEST - Exécution"
     - python -m pytest -v --tb=short
     - echo "TESTS TERMINÉS"
     - echo "CI RÉUSSIE - 3 STAGES COMPLÉTÉS"

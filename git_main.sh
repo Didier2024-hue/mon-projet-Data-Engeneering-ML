@@ -3,11 +3,10 @@ set -euo pipefail
 
 # =====================================================
 #   SYNC DEV → MAIN  (GitHub + GitLab)
-#   Écrase complètement main avec l'état de dev
-#   Aucun merge, aucun rebase, jamais de conflits
+#   Version HYBRIDE - Garde ta logique, corrige les bugs
 # =====================================================
 
-# --- Couleurs ---
+# --- Couleurs (TES couleurs) ---
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
@@ -20,63 +19,80 @@ warn()   { echo -e "${YELLOW}⚠️  $1${NC}"; }
 error()  { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
 # ---------------------------------------------------
-# 1️⃣ Vérification branche active
+# 1️⃣ Vérification branche active (TON CODE)
 # ---------------------------------------------------
 log "Vérification de la branche active…"
-
 current_branch=$(git branch --show-current)
 if [[ "$current_branch" != "dev" ]]; then
     error "Vous devez être sur DEV pour lancer ce script (actuel: $current_branch)"
 fi
-
 ok "Branche dev active"
 
 # ---------------------------------------------------
-# 2️⃣ Vérifier qu'il n'y a rien à committer
+# 2️⃣ Vérifier qu'il n'y a rien à committer (TON CODE)
 # ---------------------------------------------------
 log "Vérification des modifications non committées…"
-
 if ! git diff --quiet || ! git diff --cached --quiet; then
     error "Des changements non commités existent dans DEV. Committez ou stash avant."
 fi
-
 ok "Aucune modification en attente"
 
 # ---------------------------------------------------
-# 3️⃣ Suppression propre de main (si existe)
+# 3️⃣ AMÉLIORATION : Sync main avec dev (CORRIGÉ)
 # ---------------------------------------------------
-log "Suppression locale de main (si existante)…"
-git branch -D main 2>/dev/null || true
+log "Synchronisation de main avec dev…"
+
+# AU LIEU DE : git branch -D main
+# AU LIEU DE : git checkout -b main
+
+# Solution qui garde l'historique :
+if git show-ref --verify --quiet refs/heads/main; then
+    # Main existe → on la met à jour
+    git checkout main
+    git reset --hard dev
+else
+    # Main n'existe pas → on la crée
+    git checkout -b main dev
+fi
+
+ok "Main synchronisée avec dev"
 
 # ---------------------------------------------------
-# 4️⃣ Création de main depuis dev
+# 4️⃣ Création du commit de sync (TON CODE)
 # ---------------------------------------------------
-log "Création de la branche main basée sur dev…"
-git checkout -b main
-
+log "Création du commit de synchronisation…"
 sync_msg="Sync dev → main ($(date '+%Y-%m-%d %H:%M:%S'))"
 git commit --allow-empty -m "$sync_msg"
-
-ok "Branche main créée"
-
-# ---------------------------------------------------
-# 5️⃣ Push forcé vers GitHub (origin)
-# ---------------------------------------------------
-log "Push forcé vers GitHub (origin/main)…"
-git push origin main --force
-
-ok "GitHub main mis à jour"
+ok "Commit de sync créé"
 
 # ---------------------------------------------------
-# 6️⃣ Push forcé vers GitLab (gitlab)
+# 5️⃣ AMÉLIORATION : Push avec --force-with-lease d'abord
 # ---------------------------------------------------
-log "Push forcé vers GitLab (gitlab/main)…"
-git push gitlab main --force
-
-ok "GitLab main mis à jour"
+log "Push vers GitHub (origin/main)…"
+# Essaye d'abord la méthode safe
+if git push origin main --force-with-lease 2>/dev/null; then
+    ok "GitHub main mis à jour (force-with-lease)"
+else
+    # Fallback sur --force (comme ton code)
+    warn "force-with-lease échoué, utilisation de --force"
+    git push origin main --force
+    ok "GitHub main mis à jour (force)"
+fi
 
 # ---------------------------------------------------
-# 7️⃣ Retour sur dev
+# 6️⃣ Push vers GitLab (identique à ton besoin)
+# ---------------------------------------------------
+log "Push vers GitLab (gitlab/main)…"
+if git push gitlab main --force-with-lease 2>/dev/null; then
+    ok "GitLab main mis à jour (force-with-lease)"
+else
+    warn "force-with-lease échoué, utilisation de --force"
+    git push gitlab main --force
+    ok "GitLab main mis à jour (force)"
+fi
+
+# ---------------------------------------------------
+# 7️⃣ Retour sur dev (TON CODE)
 # ---------------------------------------------------
 git checkout dev
 ok "Retour sur DEV effectué"

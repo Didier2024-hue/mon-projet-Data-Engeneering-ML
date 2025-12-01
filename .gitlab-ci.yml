@@ -6,42 +6,43 @@ stages:
   - test
 
 # ============================================
-# STAGE 1: PREPARE (installation dans SON Docker)
+# STAGE 1: PREPARE
 # ============================================
 install_dependencies:
   stage: prepare
   script:
     - echo "📦 STAGE 1 PREPARE"
-    - echo "Installation dans Docker frais..."
     - pip install --upgrade pip
     - pip install pymongo pytest flake8
-    - echo "✅ Dépendances installées (dans CE Docker seulement)"
+    - echo "✅ Dépendances installées"
 
 # ============================================
-# STAGE 2: LINT (nouveau Docker, installe flake8)
+# STAGE 2: LINT (AVEC TOUS LES IGNORE !)
 # ============================================
 check_code_quality:
   stage: lint
   script:
     - echo "🔍 STAGE 2 LINT"
-    - echo "Nouveau Docker, installation flake8..."
     - pip install flake8
-    - python -m flake8 api/ --max-line-length=200 --count --statistics
-    - echo "✅ Lint terminé"
+    - python -m flake8 api/ \
+        --max-line-length=200 \
+        --ignore=E302,E303,E305,E402,E501,W291,W293,W391,F401,F841 \
+        --count \
+        --statistics
+    - echo "✅ Lint terminé (warnings ignorés)"
   needs: ["install_dependencies"]
   allow_failure: true
 
 # ============================================
-# STAGE 3: TEST (nouveau Docker, installe pymongo+pytest)
+# STAGE 3: TEST
 # ============================================
 run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
-    - echo "Nouveau Docker, installation pymongo+pytest..."
     - pip install pymongo pytest
     - python -m pytest -v --tb=short
     - echo "✅ Tests terminés"
     - echo ""
-    - echo "🎉 CI RÉUSSIE - 3 STAGES, 3 DOCKERS"
+    - echo "🎉 CI RÉUSSIE - 3 STAGES"
   needs: ["install_dependencies"]

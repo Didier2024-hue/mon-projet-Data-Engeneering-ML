@@ -35,6 +35,7 @@ run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
+    - pip install pymongo pytest
     - python -m pytest -v --tb=short
     - echo "✅ Tests terminés"
     - echo ""

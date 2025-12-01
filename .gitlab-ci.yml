@@ -1,25 +1,58 @@
+image: python:3.10
+
+stages:
+  - prepare
+  - lint
+  - test
+
+# -------------------------------------------------
+# STAGE 1 — PREPARE
+# -------------------------------------------------
+install_dependencies:
+  stage: prepare
+  script:
+    - pip install --upgrade pip
+    - pip install pymongo pytest
+  needs: []
+
+# -------------------------------------------------
+# STAGE 2 — LINT
+# -------------------------------------------------
+check_code_quality:
+  stage: lint
+  script:
+    - pip install flake8
+    - python -m flake8 api/ --max-line-length=200 --ignore=E302,E303,E305,E402,E501,W291,W293,W391,F401,F841 --count --statistics || true
+  needs: ["install_dependencies"]
+  allow_failure: true
+
+# -------------------------------------------------
+# STAGE 3 — TEST DANS TON DOCKER fastapi-cde
+# -------------------------------------------------
 run_all_tests:
   stage: test
-  image: docker:latest
+  image: docker:23.0.1
   services:
-    - docker:dind
+    - name: docker:23.0.1-dind
+      command: ["--tls=false"]
   variables:
-    DOCKER_HOST: "tcp://docker:2375/"
+    DOCKER_HOST: "tcp://docker:2375"
     DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache docker-cli-compose
   script:
     - echo "🐳 Démarrage docker-compose"
     - docker compose up -d
 
-    - echo "⏳ Attente de fastapi-cde..."
+    - echo "⏳ Attente du service fastapi-cde..."
     - sleep 25
 
-    - echo "🔎 Conteneurs démarrés :"
+    - echo "🔍 Status des conteneurs :"
     - docker ps -a
 
-    - echo "🧪 Exécution des tests dans fastapi-cde"
+    - echo "🧪 Lancement de pytest dans fastapi-cde"
     - docker exec fastapi-cde pytest -v
 
-    - echo "🎉 Tests terminés avec succès"
+    - echo "🎉 Tests terminés avec succès !"
 
   needs: ["install_dependencies"]
-  

@@ -22,4 +22,4 @@ run_all_tests:
     - echo "🎉 Tests terminés avec succès"
 
   needs: ["install_dependencies"]
-  tags: []
+  

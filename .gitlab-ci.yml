@@ -1,8 +1,9 @@
+# .gitlab-ci.yml - VERSION FINALE CORRECTE
 image: python:3.10
 
 stages:
   - prepare
-  - lint
+  - lint   # ⬅️ EN MINUSCULE
   - test
 
 install_dependencies:
@@ -14,7 +15,7 @@ install_dependencies:
     - echo "Dépendances installées"
 
 check_code_quality:
-  stage: lint
+  stage: lint  # ⬅️ DOIT CORRESPONDRE AU NOM DANS "stages:"
   script:
     - echo "STAGE 2: LINT - Analyse qualité"
     - python -m flake8 api/ --max-line-length=200 --count --statistics

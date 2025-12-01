@@ -35,8 +35,8 @@ run_all_tests:
   stage: test
   script:
     - echo "🧪 STAGE 3 TEST"
-    - - pip install pymongo pytest fastapi uvicorn python-dotenv
-    - python -m pytest -v --tb=short
+    - - pip install pymongo pytest fastapi uvicorn python-dotenv httpx
+    - python -m pytest api/tests/ -v --tb=short
     - echo "✅ Tests terminés"
     - echo ""
     - echo "🎉 CI RÉUSSIE - 3 STAGES prepare, lint, test"

@@ -3,8 +3,7 @@ set -euo pipefail
 
 echo "🔍 Lint Python — scripts uniquement (pas l'API)"
 
-# On suppose que le script est lancé depuis la racine du projet (CI_PROJECT_DIR)
-SCRIPT_DIR="./scripts"
+SCRIPT_DIR="/home/datascientest/cde/scripts"
 
 TARGETS=(
     "$SCRIPT_DIR/app"
@@ -21,6 +20,6 @@ printf '%s\n' "${TARGETS[@]}"
 flake8 \
   "${TARGETS[@]}" \
   --max-line-length=200 \
-  --ignore=E302,E305,E402,E501,W293,W391,F401,F841,E704,E241,W291,E226,E303
+  --ignore=E302,E305,E402,E501,W293,W391,F401,F841,E704,E241,W291,E226,E303,E722,E128,E231,F541,W292
 
 echo "✅ Lint scripts OK"

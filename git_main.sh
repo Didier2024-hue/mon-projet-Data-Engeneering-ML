@@ -3,7 +3,7 @@ set -euo pipefail
 
 # =====================================================
 #   SYNC DEV → MAIN  (GitHub + GitLab)
-#   Version HYBRIDE - Garde ta logique, corrige les bugs
+#   
 # =====================================================
 
 # --- Couleurs (TES couleurs) ---
@@ -19,7 +19,7 @@ warn()   { echo -e "${YELLOW}⚠️  $1${NC}"; }
 error()  { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
 # ---------------------------------------------------
-# 1️⃣ Vérification branche active (TON CODE)
+# 1️⃣ Vérification branche active
 # ---------------------------------------------------
 log "Vérification de la branche active…"
 current_branch=$(git branch --show-current)
@@ -29,7 +29,7 @@ fi
 ok "Branche dev active"
 
 # ---------------------------------------------------
-# 2️⃣ Vérifier qu'il n'y a rien à committer (TON CODE)
+# 2️⃣ Vérifier qu'il n'y a rien à committer
 # ---------------------------------------------------
 log "Vérification des modifications non committées…"
 if ! git diff --quiet || ! git diff --cached --quiet; then
@@ -38,12 +38,9 @@ fi
 ok "Aucune modification en attente"
 
 # ---------------------------------------------------
-# 3️⃣ AMÉLIORATION : Sync main avec dev (CORRIGÉ)
+# 3️⃣ AMÉLIORATION : Sync main avec dev
 # ---------------------------------------------------
 log "Synchronisation de main avec dev…"
-
-# AU LIEU DE : git branch -D main
-# AU LIEU DE : git checkout -b main
 
 # Solution qui garde l'historique :
 if git show-ref --verify --quiet refs/heads/main; then
@@ -80,7 +77,7 @@ else
 fi
 
 # ---------------------------------------------------
-# 6️⃣ Push vers GitLab (identique à ton besoin)
+# 6️⃣ Push vers GitLab 
 # ---------------------------------------------------
 log "Push vers GitLab (gitlab/main)…"
 if git push gitlab main --force-with-lease 2>/dev/null; then

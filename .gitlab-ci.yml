@@ -1,77 +1,34 @@
-image: python:3.10
-
 stages:
   - lint
   - test
 
-# -------------------------------------------------
-# STAGE 1 — LINT
-# -------------------------------------------------
-check_code_quality:
+variables:
+  GIT_STRATEGY: clone
+
+# ============================================================
+# 🔍 LINT — Vérification de la syntaxe Python sur scripts/
+# ============================================================
+lint:
   stage: lint
   script:
-    - pip install --upgrade pip
-    - pip install flake8
-    - python -m flake8 api/ --max-line-length=200 --ignore=E302,E303,E305,E402,E501,W291,W293,W391,F401,F841 --count --statistics || true
-  allow_failure: true
+    - echo "🔍 Lancement du linting Python..."
+    - cd "$CI_PROJECT_DIR"
+    - python3 -m pip install --user flake8
+    - bash ci/gitlab/scripts/lint.sh
+  tags:
+    - cde-runner
+  allow_failure: false
 
-# -------------------------------------------------
-# STAGE 2 — TEST DANS TON DOCKER fastapi-cde
-# -------------------------------------------------
-run_all_tests:
+# ============================================================
+# 🧪 TESTS — Exécuter pytest dans le conteneur fastapi-cde
+# ============================================================
+tests:
   stage: test
-  image: docker:23.0.1
-
-  services:
-    - name: docker:23.0.1-dind
-      command: ["--tls=false"]
-
-  variables:
-    DOCKER_HOST: "tcp://docker:2375"
-    DOCKER_TLS_CERTDIR: ""
-
-  before_script:
-    - apk add --no-cache docker-cli-compose
-
   script:
-    # -----------------------
-    # 1. Créer le .env racine pour docker-compose
-    # -----------------------
-    - echo "📄 Création du fichier .env (pour docker-compose)"
-    - echo "AUTH_MODE=off" > .env
-
-    # -----------------------
-    # 2. Créer api/.env.api (pour FastAPI)
-    # -----------------------
-    - echo "📄 Création du fichier api/.env.api"
-    - mkdir -p api
-    - echo "MONGO_URI=mongodb://mongo-cde:27017" > api/.env.api
-    - echo "MONGO_DB=trustpilot" >> api/.env.api
-    - echo "MLFLOW_TRACKING_URI=http://mlflow:5000" >> api/.env.api
-    - echo "AUTH_MODE=off" >> api/.env.api
-
-    # -----------------------
-    # 3. Démarrer docker-compose
-    # -----------------------
-    - echo "🐳 Démarrage docker-compose"
-    - docker compose up -d
-
-    # -----------------------
-    # 4. Attendre que fastapi-cde soit prêt
-    # -----------------------
-    - echo "⏳ Attente du service fastapi-cde..."
-    - sleep 25
-
-    # -----------------------
-    # 5. Afficher l’état des conteneurs
-    # -----------------------
-    - echo "🔍 Status des conteneurs :"
-    - docker ps -a
-
-    # -----------------------
-    # 6. Exécuter les tests
-    # -----------------------
-    - echo "🧪 Exécution de pytest dans fastapi-cde"
-    - docker exec fastapi-cde pytest -v
-
-    - echo "🎉 Tests terminés avec succès !"
+    - echo "🧪 Exécution des tests API..."
+    - cd "$CI_PROJECT_DIR"
+    - bash ci/gitlab/scripts/tests.sh
+  tags:
+    - cde-runner
+  allow_failure: false
+  needs: ["lint"]

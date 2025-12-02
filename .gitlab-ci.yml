@@ -6,14 +6,16 @@ variables:
   GIT_STRATEGY: clone
 
 # ============================================================
-# 🔍 LINT — Vérification de la syntaxe Python sur scripts/
+# 🔍 LINT — Vérification avec flake8 (venv éphémère)
 # ============================================================
 lint:
   stage: lint
   script:
     - echo "🔍 Lancement du linting Python..."
     - cd "$CI_PROJECT_DIR"
-    - python3 -m pip install --user flake8
+    - python3 -m venv .venv
+    - source .venv/bin/activate
+    - pip install flake8
     - bash ci/gitlab/scripts/lint.sh
   tags:
     - cde-runner

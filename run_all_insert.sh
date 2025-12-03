@@ -20,6 +20,16 @@ else
     BASE_DIR="$HOST_BASE"
 fi
 
+# 🔥 Activation du venv correct si on est sur le HOST
+if [ "$IN_DOCKER" -eq 0 ]; then
+    if [ -f "/home/datascientest/cde/cde_env/bin/activate" ]; then
+        echo "🔧 Activation de l'environnement virtuel..."
+        source /home/datascientest/cde/cde_env/bin/activate
+    else
+        echo "⚠️ Attention : venv introuvable : /home/datascientest/cde/cde_env"
+    fi
+fi
+
 ENV_FILE="${BASE_DIR}/.env"
 
 # -------------------------------------------------------------
@@ -42,7 +52,7 @@ fi
 
 # fallback logs
 if [ -z "${LOG_DIR:-}" ]; then
-    LOG_DIR="${BASE_DIR}/logs"
+    LOG_DIR="${BASE_DIR}/log"
 fi
 
 mkdir -p "$LOG_DIR"
@@ -52,11 +62,10 @@ exec > >(tee -a "$LOGFILE_INSERT") 2>&1
 
 echo "============================================================"
 echo "🏁 Script run_all_insert.sh"
-echo "Mode : $([ "$IN_DOCKER" -eq 1 ] && echo 'Docker/Airflow' || echo 'Host')"
+echo "Mode : $([ "$IN_DOCKER" -eq 1 ] && echo 'Docker' || echo 'Host')"
 echo "BASE_DIR : $BASE_DIR"
 echo "Log : $LOGFILE_INSERT"
 echo "============================================================"
-
 
 # -------------------------------------------------------------
 # 4) Scripts réels (vérifiés)
@@ -76,7 +85,6 @@ echo "- $SCRIPT_WIKI"
 echo "- $SCRIPT_POSTGRE"
 echo "- $SCRIPT_MONGO"
 echo ""
-
 
 # -------------------------------------------------------------
 # 5) Fonction d'exécution Python

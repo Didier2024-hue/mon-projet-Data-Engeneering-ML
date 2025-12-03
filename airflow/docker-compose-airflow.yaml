@@ -39,6 +39,7 @@ services:
       - ./requirements_airflow.txt:/requirements_airflow.txt
       - /home/datascientest/cde:/opt/airflow/cde
       - /home/datascientest/cde/.env:/opt/airflow/cde/.env
+      - /home/datascientest/cde:/home/datascientest/cde   
 
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -85,6 +86,7 @@ services:
       - ./requirements_airflow.txt:/requirements_airflow.txt
       - /home/datascientest/cde:/opt/airflow/cde
       - /home/datascientest/cde/.env:/opt/airflow/cde/.env
+      - /home/datascientest/cde:/home/datascientest/cde
 
     extra_hosts:
       - "host.docker.internal:host-gateway"

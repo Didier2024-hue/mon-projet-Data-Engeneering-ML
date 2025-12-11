@@ -5,7 +5,7 @@ services:
     container_name: redis-airflow
     restart: unless-stopped
     networks:
-      - cde_cde_net
+      - cde_net
     ports:
       - "6380:6379"
     mem_limit: 128m
@@ -56,7 +56,7 @@ services:
       - "8080:8080"
 
     networks:
-      - cde_cde_net
+      - cde_net
 
     mem_limit: 1g
     cpus: 0.80
@@ -98,11 +98,11 @@ services:
       "
 
     networks:
-      - cde_cde_net
+      - cde_net
 
     mem_limit: 384m
     cpus: 0.60
 
 networks:
-  cde_cde_net:
+  cde_net:
     external: true

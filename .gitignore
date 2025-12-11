@@ -15,11 +15,19 @@ __pycache__/
 # ============================================
 # DONNÉES & FICHIERS LOURDS
 # ============================================
-data/   # tu ignores tout (comme demandé)
-spacy_models/
-swapfile
-*.swp
-*.bak
+# Ignorer la plupart des dossiers data
+data/trustpilot/
+data/processed/resources/
+data/processed/export_*.csv
+data/processed/stats_*.csv
+data/processed/resultats_*.csv
+data/report/
+
+# Mais GARDER certains dossiers
+!data/wikipedia/
+!data/processed/.keep
+!data/model/.keep
+!data/export/
 
 # ML models (fichiers binaires lourds)
 data/model/*.pkl
@@ -112,3 +120,49 @@ tmp_cache/
 gitlab-runner/
 docker/overlay2/
 cde_backup_git/
+
+# ============================================
+# grafana
+# ============================================
+
+# Base de données Grafana
+grafana.db
+
+# Dossiers de données temporaires
+grafana/csv/
+grafana/pdf/
+grafana/png/
+
+# Plugins (peuvent être réinstallés)
+grafana/plugins/
+
+# Nginx (si vide ou contenant des données temporaires)
+nginx/
+
+# Fichiers de cache/système
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# ============================================
+# CACHES ET DONNÉES D'ANALYSE
+# ============================================
+
+# NLTK data cache
+data/processed/resources/nltk_data/
+data/processed/resources/xdg_cache/
+
+# Cache système et fonts
+*.cache
+.cache/
+*.cache-*
+
+# Données générées temporairement
+data/processed/export_*.csv
+data/processed/stats_*.csv
+data/processed/resultats_*.csv
+
+
+# MLFlow artifacts (déjà dans mlruns/ mais au cas où)
+--default-artifact-root/

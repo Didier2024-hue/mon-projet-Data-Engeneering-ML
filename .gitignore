@@ -16,6 +16,7 @@ __pycache__/
 # DONNÉES & FICHIERS LOURDS
 # ============================================
 # Ignorer la plupart des dossiers data
+data/
 data/trustpilot/
 data/processed/resources/
 data/processed/export_*.csv

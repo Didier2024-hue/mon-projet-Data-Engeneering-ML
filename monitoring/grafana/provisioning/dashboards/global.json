@@ -53,7 +53,7 @@
       "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
       "targets": [
         {
-          "expr": "probe_success{instance=\"http://airflow-webserver:8080/health\"}",
+          "expr": "probe_success{instance=\"http://airflow-webserver:8080\"}",
           "instant": true
         }
       ],
@@ -298,19 +298,73 @@
         "legend": { "displayMode": "table", "placement": "bottom" }
       }
     },
-
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Network Traffic",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_bytes_total[5m]))",
+          "legendFormat": "⬇ Total Download"
+        },
+        {
+          "expr": "sum(rate(container_network_transmit_bytes_total[5m]))",
+          "legendFormat": "⬆ Total Upload"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0,
+          "decimals": 1
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Top 5 Network Consumers",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+      "targets": [
+        {
+          "expr": "topk(5, rate(container_network_receive_bytes_total{name!=\"\"}[5m]) + rate(container_network_transmit_bytes_total{name!=\"\"}[5m]))",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0,
+          "decimals": 1
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
     {
       "id": 11,
       "type": "row",
       "title": "Docker Containers",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 }
     },
     {
       "id": 12,
       "type": "stat",
       "title": "Total Containers",
       "datasource": "Prometheus",
-      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 19 },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 27 },
       "targets": [
         {
           "expr": "count(container_last_seen{name!=\"\"})"
@@ -335,7 +389,7 @@
       "type": "timeseries",
       "title": "Container CPU Top 5",
       "datasource": "Prometheus",
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 23 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 31 },
       "targets": [
         {
           "expr": "topk(5, rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) * 100)",
@@ -364,7 +418,7 @@
       "type": "timeseries",
       "title": "Container Memory Top 5",
       "datasource": "Prometheus",
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 23 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 31 },
       "targets": [
         {
           "expr": "topk(5, container_memory_usage_bytes{name!=\"\"} / 1024 / 1024)",
@@ -392,7 +446,7 @@
       "type": "bargauge",
       "title": "CPU Usage Now",
       "datasource": "Prometheus",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
       "targets": [
         {
           "expr": "rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) * 100",
@@ -429,7 +483,7 @@
       "type": "bargauge",
       "title": "Memory Usage Now",
       "datasource": "Prometheus",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 41 },
       "targets": [
         {
           "expr": "container_memory_usage_bytes{name!=\"\"} / 1024 / 1024",
@@ -464,14 +518,14 @@
       "id": 15,
       "type": "row",
       "title": "Services Latency",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 }
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 49 }
     },
     {
       "id": 16,
       "type": "timeseries",
       "title": "HTTP Latency (ms)",
       "datasource": "Prometheus",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 42 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 50 },
       "targets": [
         {
           "expr": "probe_duration_seconds{instance=\"http://mlflow-cde:5000\"} * 1000",
@@ -490,7 +544,7 @@
           "legendFormat": "Streamlit ML"
         },
         {
-          "expr": "probe_duration_seconds{instance=\"http://airflow-webserver:8080/health\"} * 1000",
+          "expr": "probe_duration_seconds{instance=\"http://airflow-webserver:8080\"} * 1000",
           "legendFormat": "Airflow"
         }
       ],

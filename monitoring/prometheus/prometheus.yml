@@ -40,7 +40,7 @@ scrape_configs:
         - http://fastapi-cde:8000/health
         - http://streamlit-dashboard:8501
         - http://streamlit-ml:8502
-        - http://airflow-webserver:8080/health  # ← CHANGÉ ICI
+        - http://airflow-webserver:8080
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -48,3 +48,11 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: blackbox-exporter:9115
+
+  # --- API FastAPI metrics
+  - job_name: 'fastapi-metrics'
+    static_configs:
+      - targets: ['fastapi-cde:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+        

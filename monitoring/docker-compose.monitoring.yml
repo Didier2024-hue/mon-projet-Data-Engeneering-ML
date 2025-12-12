@@ -1,0 +1,172 @@
+services:
+  # ===========================
+  # PROMETHEUS
+  # ===========================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-cde
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=200h'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - cde_net
+
+  # ===========================
+  # BLACKBOX EXPORTER
+  # ===========================
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox-config.yml:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - cde_net
+
+  # ===========================
+  # MONGODB EXPORTER
+  # ===========================
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.39
+    container_name: mongodb-exporter
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: "mongodb://admin:admin@mongo-cde:27017/?authSource=admin"
+    ports:
+      - "9216:9216"
+    networks:
+      - cde_net
+
+  # ===========================
+  # LOKI
+  # ===========================
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: loki-cde
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - cde_net
+
+  # ===========================
+  # PROMTAIL
+  # ===========================
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: promtail-cde
+    restart: unless-stopped
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - cde_net
+
+  # ===========================
+  # NGINX PROXY POUR AIRFLOW
+  # ===========================
+  #airflow-proxy:
+  #  image: nginx:latest
+  #  container_name: airflow-proxy
+  #  restart: unless-stopped
+  #  ports: []
+  #  volumes:
+  #    - ../nginx/airflow.conf:/etc/nginx/conf.d/default.conf:ro
+  #  networks:
+  #    - cde_net
+
+  # ===========================
+  # GRAFANA
+  # ===========================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-cde
+    restart: unless-stopped
+    user: "472"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/global.json
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - cde_net
+
+  # ===========================
+  # CADVISOR
+  # ===========================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      - cde_net
+
+  # ===========================
+  # NODE EXPORTER
+  # ===========================
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth.*|docker.*|br-.*)$'
+    privileged: true
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /run/docker.sock:/run/docker.sock:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - cde_net
+
+# ===========================
+# VOLUMES
+# ===========================
+volumes:
+  prometheus_data:
+  loki_data:
+  grafana_data:
+
+# ===========================
+# NETWORKS
+# ===========================
+networks:
+  cde_net:
+    external: true

@@ -174,3 +174,28 @@ data/processed/resultats_*.csv
 
 # MLFlow artifacts (déjà dans mlruns/ mais au cas où)
 --default-artifact-root/
+
+# ============================================
+# MONITORING - Données générées/volumineuses
+# ============================================
+
+# Grafana - Base de données et fichiers temporaires
+monitoring/grafana/grafana.db
+monitoring/grafana/csv/
+monitoring/grafana/pdf/
+monitoring/grafana/png/
+
+# Grafana - Plugins (peuvent être réinstallés)
+monitoring/grafana/plugins/
+
+# Nginx - données temporaires
+monitoring/nginx/
+
+# ============================================
+# OU pour ignorer complètement certains dossiers
+# ============================================
+monitoring/grafana/csv/
+monitoring/grafana/pdf/
+monitoring/grafana/png/
+monitoring/grafana/plugins/*
+!monitoring/grafana/provisioning/

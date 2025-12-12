@@ -38,6 +38,19 @@ data/model/*.h5
 data/model/*.onnx
 
 # ============================================
+# MODÈLES SPAcy (volumineux)
+# ============================================
+spacy_models/
+
+# ============================================
+# FICHIERS SWAP/SYSTÈME
+# ============================================
+swapfile
+*.swap
+*.swp
+*.swo
+
+# ============================================
 # DOCKER
 # ============================================
 docker/overlay2/
@@ -139,12 +152,6 @@ grafana/plugins/
 # Nginx (si vide ou contenant des données temporaires)
 nginx/
 
-# Fichiers de cache/système
-*.log
-*.tmp
-*.swp
-.DS_Store
-
 # ============================================
 # CACHES ET DONNÉES D'ANALYSE
 # ============================================
@@ -162,7 +169,6 @@ data/processed/resources/xdg_cache/
 data/processed/export_*.csv
 data/processed/stats_*.csv
 data/processed/resultats_*.csv
-
 
 # MLFlow artifacts (déjà dans mlruns/ mais au cas où)
 --default-artifact-root/

@@ -54,6 +54,7 @@ swapfile
 # ============================================
 # DOCKER
 # ============================================
+docker/
 docker/overlay2/
 docker-data/
 docker/volumes/

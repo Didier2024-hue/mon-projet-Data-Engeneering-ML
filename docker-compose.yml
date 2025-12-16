@@ -80,31 +80,29 @@ services:
   # FastAPI
   # --------------------------
   api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile.api
-    container_name: fastapi-cde
-    restart: unless-stopped
-    env_file:
-      - ./api/.env.api
-    environment:
-      MLFLOW_TRACKING_URI: http://mlflow:5000
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./api/services:/app/services
-      - ./data:/app/data
-      - ./logs:/app/log
-      - ./data/model:/app/data/model
-      - ./data/api:/app/data/api
-    depends_on:
-      - mongo
-      - postgres
-      - mlflow
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    mem_limit: 512m
-    networks:
-      - cde_net
+  build:
+    context: ./api
+    dockerfile: Dockerfile.api
+  container_name: fastapi-cde
+  restart: unless-stopped
+  env_file:
+    - ./api/.env.api
+  environment:
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+  ports:
+    - "8000:8000"
+  volumes:
+    - ./api:/app
+    - ./data:/app/data
+    - ./logs:/app/log
+  depends_on:
+    - mongo
+    - postgres
+    - mlflow
+  command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+  networks:
+    - cde_net
+
 
   # --------------------------
   # Streamlit Dashboard (API)

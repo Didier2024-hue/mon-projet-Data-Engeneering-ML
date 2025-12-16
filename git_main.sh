@@ -51,7 +51,9 @@ ok "✓ Aucune modification en attente"
 # 🔒 Vérification supplémentaire : Conflits potentiels
 # ---------------------------------------------------
 log "Vérification des divergences avec GitLab…"
-git fetch gitlab --quiet
+if ! git fetch gitlab --quiet 2>/dev/null; then
+    error "Échec de la connexion à GitLab. Vérifiez votre jeton d'accès et votre connexion réseau."
+fi
 
 # Vérifier si main sur GitLab est en avance
 if git log dev..gitlab/main --oneline 2>/dev/null | grep -q .; then
@@ -80,13 +82,9 @@ log "SHA actuel de dev: $dev_sha"
 git checkout main
 ok "✓ Basculé sur 'main'"
 
-# Option A : Merge propre (recommandé pour l'historique)
+# Merge propre (recommandé pour l'historique)
 git merge --no-ff dev -m "🚀 Déploiement PROD [SHA: $dev_sha] - $(date '+%Y-%m-%d %H:%M:%S')"
 ok "✓ Fusion propre effectuée"
-
-# Option B : Reset hard (si vous préférez vraiment)
-# git reset --hard dev
-# git commit --allow-empty -m "🔄 Sync dev → main [SHA: $dev_sha] - $(date '+%Y-%m-%d %H:%M:%S')"
 
 # ---------------------------------------------------
 # 📡 Push et déclenchement CI/CD
@@ -122,10 +120,26 @@ else
 fi
 
 # ---------------------------------------------------
-# 🔄 Retour à la normale
+# 🔄 SYNCHRONISATION AUTOMATIQUE (NOUVEAU)
 # ---------------------------------------------------
+log "🔄 Synchronisation automatique de dev avec le nouveau main..."
 git checkout dev
-ok "✓ Retour sur 'dev'"
+git merge --ff-only main -m "🔄 Auto-sync: dev ← main [SHA: $(git rev-parse --short main)]"
+ok "✓ Dev synchronisée avec le nouveau main"
+
+# Poussez dev synchronisée (optionnel mais recommandé)
+log "🔄 Envoi de dev synchronisée..."
+if git push origin dev; then
+    ok "✓ Dev synchronisée poussée sur GitHub"
+else
+    warn "Push dev sur GitHub échoué"
+fi
+
+if git push gitlab dev; then
+    ok "✓ Dev synchronisée poussée sur GitLab"
+else
+    warn "Push dev sur GitLab échoué"
+fi
 
 # ---------------------------------------------------
 # 📋 Résumé du déploiement

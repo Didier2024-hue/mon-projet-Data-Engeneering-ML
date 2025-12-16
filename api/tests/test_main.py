@@ -16,5 +16,8 @@ class TestMainAPI:
         """Test de la route '/health'"""
         response = client.get("/health")
         assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert "timestamp" in data
+
 

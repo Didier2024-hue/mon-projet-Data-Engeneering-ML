@@ -13,11 +13,17 @@ app = FastAPI()
 # ============================================
 @app.get("/health")
 async def health_check():
-    """Endpoint de santé minimal pour Grafana"""
+    """Healthcheck contractuel pour CI"""
+    return {"status": "ok"}
+
+@app.get("/healthz")
+async def healthz():
+    """Healthcheck détaillé pour monitoring"""
     return {
         "status": "ok",
         "timestamp": datetime.now().isoformat()
     }
+
 
 # ============================================
 # ROUTERS EXISTANTS (NE PAS TOUCHER)

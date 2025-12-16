@@ -2,8 +2,9 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Installer la VRAIE version que vous utilisez
-RUN pip install --upgrade pip && \
+# Installer curl + MLflow
+RUN apt-get update && apt-get install -y curl && \
+    pip install --upgrade pip && \
     pip install mlflow==3.3.1 psycopg2-binary
 
 EXPOSE 5000

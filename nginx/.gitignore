@@ -1,0 +1,4 @@
+# Logs nginx
+*.log
+*.pid
+*.tmp

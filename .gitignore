@@ -15,11 +15,20 @@ __pycache__/
 # ============================================
 # DONNÉES & FICHIERS LOURDS
 # ============================================
-data/   # tu ignores tout (comme demandé)
-spacy_models/
-swapfile
-*.swp
-*.bak
+# Ignorer la plupart des dossiers data
+data/
+data/trustpilot/
+data/processed/resources/
+data/processed/export_*.csv
+data/processed/stats_*.csv
+data/processed/resultats_*.csv
+data/report/
+
+# Mais GARDER certains dossiers
+!data/wikipedia/
+!data/processed/.keep
+!data/model/.keep
+!data/export/
 
 # ML models (fichiers binaires lourds)
 data/model/*.pkl
@@ -30,8 +39,22 @@ data/model/*.h5
 data/model/*.onnx
 
 # ============================================
+# MODÈLES SPAcy (volumineux)
+# ============================================
+spacy_models/
+
+# ============================================
+# FICHIERS SWAP/SYSTÈME
+# ============================================
+swapfile
+*.swap
+*.swp
+*.swo
+
+# ============================================
 # DOCKER
 # ============================================
+docker/
 docker/overlay2/
 docker-data/
 docker/volumes/
@@ -112,3 +135,67 @@ tmp_cache/
 gitlab-runner/
 docker/overlay2/
 cde_backup_git/
+
+# ============================================
+# grafana
+# ============================================
+
+# Base de données Grafana
+grafana.db
+
+# Dossiers de données temporaires
+grafana/csv/
+grafana/pdf/
+grafana/png/
+
+# Plugins (peuvent être réinstallés)
+grafana/plugins/
+
+# Nginx (si vide ou contenant des données temporaires)
+nginx/
+
+# ============================================
+# CACHES ET DONNÉES D'ANALYSE
+# ============================================
+
+# NLTK data cache
+data/processed/resources/nltk_data/
+data/processed/resources/xdg_cache/
+
+# Cache système et fonts
+*.cache
+.cache/
+*.cache-*
+
+# Données générées temporairement
+data/processed/export_*.csv
+data/processed/stats_*.csv
+data/processed/resultats_*.csv
+
+# MLFlow artifacts (déjà dans mlruns/ mais au cas où)
+--default-artifact-root/
+
+# ============================================
+# MONITORING - Données générées/volumineuses
+# ============================================
+
+# Grafana - Base de données et fichiers temporaires
+monitoring/grafana/grafana.db
+monitoring/grafana/csv/
+monitoring/grafana/pdf/
+monitoring/grafana/png/
+
+# Grafana - Plugins (peuvent être réinstallés)
+monitoring/grafana/plugins/
+
+# Nginx - données temporaires
+monitoring/nginx/
+
+# ============================================
+# OU pour ignorer complètement certains dossiers
+# ============================================
+monitoring/grafana/csv/
+monitoring/grafana/pdf/
+monitoring/grafana/png/
+monitoring/grafana/plugins/*
+!monitoring/grafana/provisioning/

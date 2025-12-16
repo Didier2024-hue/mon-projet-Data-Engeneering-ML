@@ -58,20 +58,20 @@ services:
     volumes:
       - ./mlruns:/app/mlruns
     command: >
-      mlflow server 
-      --backend-store-uri postgresql+psycopg2://admin:admin@postgres:5432/mlflow_db 
-      --default-artifact-root file:///app/mlruns 
-      --host 0.0.0.0 
+      mlflow server
+      --backend-store-uri postgresql+psycopg2://admin:admin@postgres:5432/mlflow_db
+      --default-artifact-root file:///app/mlruns
+      --host 0.0.0.0
       --port 5000
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf -o /dev/null http://localhost:5000/version || exit 1"]
-      interval: 60s
-      timeout: 15s
+      test: ["CMD-SHELL", "curl -sf http://localhost:5000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 180s
+      start_period: 60s
     mem_limit: 1g
     networks:
       - cde_net
@@ -92,17 +92,17 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./api/services:/app/services
+      - ./api:/app
       - ./data:/app/data
       - ./logs:/app/log
-      - ./data/model:/app/data/model
-      - ./data/api:/app/data/api
     depends_on:
-      - mongo
-      - postgres
-      - mlflow
+      mongo:
+        condition: service_started
+      postgres:
+        condition: service_started
+      mlflow:
+        condition: service_started
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    mem_limit: 512m
     networks:
       - cde_net
 
@@ -131,8 +131,10 @@ services:
       - ./data:/app/data
       - ./logs:/app/log
     depends_on:
-      - api
-      - mlflow
+      api:
+        condition: service_started
+      mlflow:
+        condition: service_started
     command: streamlit run /app/scripts/app_api/app.py --server.port 8501 --server.address 0.0.0.0
     mem_limit: 256m
     networks:
@@ -150,7 +152,7 @@ services:
     env_file:
       - .env
     environment:
-      DATA_MODEL: /app/data/model      # ✔️ CORRIGÉ
+      DATA_MODEL: /app/data/model
       MLFLOW_TRACKING_URI: http://mlflow:5000
       AUTH_MODE: ${AUTH_MODE:-full}
       API_HOST: fastapi-cde
@@ -162,27 +164,18 @@ services:
       - ./api/services:/app/services
       - ./data:/app/data
       - ./logs:/app/log
-      - ./data/model:/app/data/model  
+      - ./data/model:/app/data/model
     depends_on:
-      - api
-      - mlflow
+      api:
+        condition: service_started
+      mlflow:
+        condition: service_started
     command: streamlit run /app/scripts/app_streamlit.py --server.port 8502 --server.address 0.0.0.0
     mem_limit: 1g
     cpus: 0.75
     networks:
       - cde_net
 
-# --------------------------
-# Réseau personnalisé
-# --------------------------
 networks:
   cde_net:
-    driver: bridge
-
-# --------------------------
-# Volumes 
-# --------------------------
-volumes:
-  postgres_data:
-  mongo_data:
-  mlflow_data:
+    external: true

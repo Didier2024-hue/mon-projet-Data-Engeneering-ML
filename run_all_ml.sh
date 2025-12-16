@@ -23,7 +23,27 @@ fi
 ENV_FILE="${BASE_DIR}/.env"
 
 # -------------------------------------------------------------
-# 2️⃣ Chargement du .env
+# 2️⃣ Activation de l'environnement virtuel Python (HOST SEULEMENT)
+# -------------------------------------------------------------
+if [ "$IN_DOCKER" -eq 0 ]; then
+    VENV_PATH="/home/datascientest/cde/cde_env"
+
+    if [ -d "$VENV_PATH" ]; then
+        echo "------------------------------------------------------------"
+        echo "Activation de l'environnement Python : $VENV_PATH"
+        # shellcheck disable=SC1090
+        source "$VENV_PATH/bin/activate"
+        echo "Python utilisé : $(which python)"
+        echo "Version Python : $(python --version)"
+        echo "------------------------------------------------------------"
+    else
+        echo "⚠️ Environnement virtuel introuvable : $VENV_PATH"
+        echo "   Les imports Python risquent d'échouer (dotenv, torch, emoji...)."
+    fi
+fi
+
+# -------------------------------------------------------------
+# 3️⃣ Chargement du .env
 # -------------------------------------------------------------
 if [ -f "$ENV_FILE" ]; then
     set -a
@@ -34,20 +54,20 @@ else
 fi
 
 # -------------------------------------------------------------
-# 3️⃣ Normalisation des chemins
+# 4️⃣ Normalisation des chemins
 # -------------------------------------------------------------
 if [ "$IN_DOCKER" -eq 1 ]; then
     LOG_DIR="${LOG_DIR/$HOST_BASE/$DOCKER_BASE}"
 fi
 
-# fallback LOG_DIR
+# Fallback
 if [ -z "${LOG_DIR:-}" ]; then
     LOG_DIR="${BASE_DIR}/logs"
 fi
 mkdir -p "$LOG_DIR"
 
 # -------------------------------------------------------------
-# 4️⃣ Log principal
+# 5️⃣ Log principal
 # -------------------------------------------------------------
 LOG_FILE="${LOG_DIR}/run_all_ml_$(date '+%Y-%m-%d_%H-%M-%S').log"
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -59,7 +79,7 @@ echo "LOG_FILE : $LOG_FILE"
 echo "============================================================"
 
 # -------------------------------------------------------------
-# 5️⃣ Liste ORDONNÉE des scripts ML
+# 6️⃣ Liste ORDONNÉE des scripts ML
 # -------------------------------------------------------------
 if [ "$IN_DOCKER" -eq 1 ]; then
     SCRIPTS=(
@@ -80,7 +100,7 @@ else
 fi
 
 # -------------------------------------------------------------
-# 6️⃣ Fonction générique d'exécution Python
+# 7️⃣ Fonction générique d'exécution Python
 # -------------------------------------------------------------
 run_python() {
     local script="$1"
@@ -97,7 +117,8 @@ run_python() {
         return 1
     fi
 
-    if python3 "$script"; then
+    # IMPORTANT : utiliser "python" pour profiter du venv activé
+    if python "$script"; then
         echo "✅ Terminé : $name"
         return 0
     else
@@ -107,7 +128,7 @@ run_python() {
 }
 
 # -------------------------------------------------------------
-# 7️⃣ Pipeline séquentiel
+# 8️⃣ Pipeline séquentiel
 # -------------------------------------------------------------
 overall_status=0
 
@@ -116,7 +137,7 @@ for script in "${SCRIPTS[@]}"; do
 done
 
 # -------------------------------------------------------------
-# 8️⃣ Sortie propre
+# 9️⃣ Résultat final
 # -------------------------------------------------------------
 echo ""
 echo "============================================================"

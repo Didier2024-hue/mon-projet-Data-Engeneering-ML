@@ -1,0 +1,579 @@
+{
+  "title": "CDE Global Dashboard",
+  "tags": ["cde", "monitoring"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Services Status",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "MongoDB",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "up{job=\"mongodb-exporter\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              { "color": "#FF0000", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "graphMode": "none",
+        "textMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Airflow",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://airflow-webserver:8080\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              { "color": "#FF0000", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "graphMode": "none",
+        "textMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "MLflow",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://mlflow-cde:5000\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              { "color": "#FF0000", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "graphMode": "none",
+        "textMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "FastAPI",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 5 },
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://fastapi-cde:8000/health\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              { "color": "#FF0000", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "graphMode": "none",
+        "textMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Streamlit Dashboard",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 5 },
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://streamlit-dashboard:8501\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              { "color": "#FF0000", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "graphMode": "none",
+        "textMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Streamlit ML",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 5 },
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://streamlit-ml:8502\"}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              { "color": "#FF0000", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "graphMode": "none",
+        "textMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Infrastructure",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "CPU Usage (%)",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU {{instance}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Memory Usage (%)",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
+      "targets": [
+        {
+          "expr": "100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))",
+          "legendFormat": "Memory {{instance}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Disk Usage (%)",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
+      "targets": [
+        {
+          "expr": "100 - ((node_filesystem_avail_bytes{fstype!=\"tmpfs\",mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{fstype!=\"tmpfs\",mountpoint=\"/\"})",
+          "legendFormat": "Root Disk"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Network Traffic",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_bytes_total[5m]))",
+          "legendFormat": "⬇ Total Download"
+        },
+        {
+          "expr": "sum(rate(container_network_transmit_bytes_total[5m]))",
+          "legendFormat": "⬆ Total Upload"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0,
+          "decimals": 1
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Top 5 Network Consumers",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+      "targets": [
+        {
+          "expr": "topk(5, rate(container_network_receive_bytes_total{name!=\"\"}[5m]) + rate(container_network_transmit_bytes_total{name!=\"\"}[5m]))",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0,
+          "decimals": 1
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Docker Containers",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Total Containers",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 27 },
+      "targets": [
+        {
+          "expr": "count(container_last_seen{name!=\"\"})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "#00FF00", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Container CPU Top 5",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 31 },
+      "targets": [
+        {
+          "expr": "topk(5, rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) * 100)",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Container Memory Top 5",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 31 },
+      "targets": [
+        {
+          "expr": "topk(5, container_memory_usage_bytes{name!=\"\"} / 1024 / 1024)",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes(MiB)",
+          "decimals": 1,
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 19,
+      "type": "bargauge",
+      "title": "CPU Usage Now",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) * 100",
+          "legendFormat": "{{name}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "bargauge",
+      "title": "Memory Usage Now",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 41 },
+      "targets": [
+        {
+          "expr": "container_memory_usage_bytes{name!=\"\"} / 1024 / 1024",
+          "legendFormat": "{{name}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes(MiB)",
+          "decimals": 1,
+          "min": 0,
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 512 },
+              { "color": "red", "value": 1024 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "title": "Services Latency",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 49 }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "HTTP Latency (ms)",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 50 },
+      "targets": [
+        {
+          "expr": "probe_duration_seconds{instance=\"http://mlflow-cde:5000\"} * 1000",
+          "legendFormat": "MLflow"
+        },
+        {
+          "expr": "probe_duration_seconds{instance=\"http://fastapi-cde:8000/health\"} * 1000",
+          "legendFormat": "FastAPI"
+        },
+        {
+          "expr": "probe_duration_seconds{instance=\"http://streamlit-dashboard:8501\"} * 1000",
+          "legendFormat": "Streamlit Dashboard"
+        },
+        {
+          "expr": "probe_duration_seconds{instance=\"http://streamlit-ml:8502\"} * 1000",
+          "legendFormat": "Streamlit ML"
+        },
+        {
+          "expr": "probe_duration_seconds{instance=\"http://airflow-webserver:8080\"} * 1000",
+          "legendFormat": "Airflow"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": false,
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+  },
+  "refresh": "30s"
+}

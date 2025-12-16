@@ -15,7 +15,7 @@ app = FastAPI()
 async def health_check():
     """Endpoint de santé minimal pour Grafana"""
     return {
-        "status": "healthy",
+        "status": "ok",
         "timestamp": datetime.now().isoformat()
     }
 

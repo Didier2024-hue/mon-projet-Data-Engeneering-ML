@@ -11,7 +11,7 @@ if ! docker ps --format '{{.Names}}' | grep -q "^fastapi-cde$"; then
     exit 1
 fi
 
-# Exécution des tests dans ton conteneur API
+# Exécution des tests dans le conteneur API
 docker exec fastapi-cde pytest -v --disable-warnings --maxfail=1
 
 echo "✅ Tests API terminés avec succès !"

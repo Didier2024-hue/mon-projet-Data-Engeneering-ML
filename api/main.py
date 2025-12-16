@@ -1,36 +1,37 @@
-from dotenv import load_dotenv
-load_dotenv("/home/datascientest/cde/api/.env.api")
+import pytest
+from fastapi.testclient import TestClient
+from main import app
 
-from fastapi import FastAPI
-from datetime import datetime
-from routers import default, societes, commentaires, predict
-from routers import auth
+client = TestClient(app)
 
-app = FastAPI()
+class TestMainAPI:
 
-# ============================================
-# AJOUT MINIMAL POUR GRAFANA
-# ============================================
-@app.get("/health")
-async def health_check():
-    """Healthcheck contractuel pour CI"""
-    return {"status": "ok"}
+    def test_root(self):
+        """Test de la route racine '/'"""
+        response = client.get("/")
+        assert response.status_code == 200
+        assert response.json() == {"message": "Bienvenue sur l'API Trustpilot"}
 
-@app.get("/healthz")
-async def healthz():
-    """Healthcheck détaillé pour monitoring"""
-    return {
-        "status": "ok",
-        "timestamp": datetime.now().isoformat()
-    }
-
-
-# ============================================
-# ROUTERS EXISTANTS (NE PAS TOUCHER)
-# ============================================
-app.include_router(default.router)
-app.include_router(societes.router)
-app.include_router(commentaires.router)
-# app.include_router(export.router) # supprimé à la demande tuteur
-app.include_router(predict.router)
-app.include_router(auth.router)
+    def test_health(self):
+        """Test de la route '/health'"""
+        response = client.get("/health")
+        
+        # Vérifier le code HTTP
+        assert response.status_code == 200
+        
+        # Vérifier le format de la réponse
+        data = response.json()
+        
+        # Vérifier les champs obligatoires
+        assert "status" in data
+        assert data["status"] == "healthy"  # Correspond à votre implémentation
+        
+        # Vérifier le timestamp (optionnel mais recommandé)
+        assert "timestamp" in data
+        
+        # Option : vérifier le format ISO du timestamp
+        import datetime
+        try:
+            datetime.datetime.fromisoformat(data["timestamp"].replace('Z', '+00:00'))
+        except ValueError:
+            pytest.fail("Timestamp n'est pas au format ISO valide")

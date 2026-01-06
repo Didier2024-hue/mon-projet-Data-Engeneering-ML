@@ -156,7 +156,6 @@ data = {"text": "Produit excellent mais livraison tardive"}
 response = requests.post("http://localhost:8000/predict/sentiment", 
                          json=data, headers=headers)
 print(response.json())
-# Résultat : {"sentiment": "positif", "confidence": 0.85}
 🔧 MLOps & Industrialisation
 Orchestration (Airflow)
 DAGs automatisés : Scraping quotidien → Nettoyage → Entraînement
@@ -200,43 +199,43 @@ Insights clés :
 📁 Structure du Projet
 text
 trustpilot-analysis/
-├── scripts/                    # Scripts principaux
-│   ├── scraping/              # Collecte données
+├── scripts/
+│   ├── scraping/
 │   │   ├── cde_scrap_new.py
 │   │   ├── cde_scrap_wiki.py
 │   │   ├── creation_mongodb.py
 │   │   └── creation_postgre.py
-│   ├── ml/                    # Machine Learning
+│   ├── ml/
 │   │   ├── snapshot_data.py
 │   │   ├── sentiment_analysis.py
 │   │   ├── clean_data.py
 │   │   ├── preprocessing_demo_ml.py
 │   │   ├── train_dual_models.py
 │   │   └── mlflow_tracking.py
-│   └── api/                   # API FastAPI
+│   └── api/
 │       ├── main.py
 │       ├── auth.py
 │       └── tests/
-├── dashboard/                 # Interface Streamlit
+├── dashboard/
 │   └── app_streamlit.py
-├── mlops/                     # Orchestration MLOps
-│   ├── dags/                 # Airflow DAGs
-│   ├── .gitlab-ci.yml        # Pipeline CI/CD
-│   └── monitoring/           # Config Prometheus/Grafana
-├── docker/                   # Configuration Docker
+├── mlops/
+│   ├── dags/
+│   ├── .gitlab-ci.yml
+│   └── monitoring/
+├── docker/
 │   ├── Dockerfile.api
 │   ├── Dockerfile.streamlit
 │   ├── Dockerfile.mlflow
 │   └── docker-compose.yml
-├── data/                     # Données
-│   ├── raw/                 # Données brutes
-│   ├── processed/           # Données nettoyées
-│   └── models/              # Modèles sérialisés
-├── notebooks/               # Analyses exploratoires
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── models/
+├── notebooks/
 │   └── analysis.ipynb
-├── requirements.txt         # Dépendances Python
-├── docker-compose.yml       # Orchestration services
-└── README.md               # Documentation
+├── requirements.txt
+├── docker-compose.yml
+└── README.md
 🛠️ Installation
 Prérequis
 bash
@@ -274,7 +273,7 @@ bash
 cp .env.example .env
 
 # Éditer avec vos configurations
-nano .env  # ou éditeur de votre choix
+nano .env
 👥 Équipe
 Rôle	Nom	Contribution
 Auteur	Didier J.	Développement complet du projet

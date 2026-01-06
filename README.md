@@ -152,67 +152,82 @@ Le projet suit une architecture **end-to-end**, couvrant l’ensemble du cycle d
 trustpilot-analysis/
 ├── scripts/
 │   ├── scraping/
-│   │   ├── cde_scrap_new.py          # Scraping Trustpilot
-│   │   ├── cde_scrap_wiki.py         # Scraping Wikipedia
-│   │   ├── creation_mongodb.py       # Initialisation MongoDB
-│   │   └── creation_postgre.py       # Initialisation PostgreSQL
+│   │   ├── trustpilot_scraper.py      # Scraping avec gestion des erreurs
+│   │   ├── wikipedia_api.py          # Collecte métadonnées
+│   │   ├── init_mongodb.py           # Schéma MongoDB
+│   │   └── init_postgresql.py        # Schéma PostgreSQL (3NF)
 │   ├── ml/
-│   │   ├── snapshot_data.py          # Export MongoDB → CSV
-│   │   ├── sentiment_analysis.py     # Annotation BERT
-│   │   ├── clean_data.py             # Nettoyage données
-│   │   ├── preprocessing_demo_ml.py  # Préprocessing NLP
-│   │   ├── train_dual_models.py      # Entraînement modèles
-│   │   └── mlflow_tracking.py        # Suivi expérimentations
+│   │   ├── data_cleaning.py          # Nettoyage + déduplication
+│   │   ├── bert_annotation.py        # Labellisation automatique
+│   │   ├── nlp_preprocessing.py      # Tokenisation, lemmatisation
+│   │   ├── model_training.py         # Benchmark + sérialisation
+│   │   └── mlflow_tracking.py        # Logging des expérimentations
 │   └── api/
-│       ├── main.py                   # FastAPI application
-│       ├── auth.py                   # Authentification JWT
-│       └── tests/                    # Tests automatisés
+│       ├── fastapi_app.py             # Endpoints + sécurité JWT
+│       ├── auth_utils.py             # Gestion des tokens
+│       └── tests/                     # Tests unitaires (Pytest)
 ├── dashboard/
-│   └── app_streamlit.py              # Interface Streamlit
+│   └── streamlit_app.py              # Visualisations interactives
 ├── mlops/
-│   ├── dags/                         # Airflow DAGs
+│   ├── airflow/
+│   │   ├── collect_data_dag.py       # Orchestration scraping
+│   │   ├── train_model_dag.py        # Pipeline ML
+│   │   └── deploy_api_dag.py         # Déploiement conteneurs
 │   ├── .gitlab-ci.yml                # Pipeline CI/CD
-│   └── monitoring/                   # Config Prometheus/Grafana
+│   └── monitoring/
+│       ├── prometheus.yml            # Config métriques
+│       └── grafana_dashboard.json    # Tableaux de bord
 ├── docker/
-│   ├── Dockerfile.api
-│   ├── Dockerfile.streamlit
-│   ├── Dockerfile.mlflow
-│   └── docker-compose.yml
+│   ├── api.Dockerfile                # Image FastAPI
+│   ├── streamlit.Dockerfile          # Image Dashboard
+│   ├── mlflow.Dockerfile             # Image MLflow
+│   └── docker-compose.yml            # 17 services conteneurisés
 ├── data/
-│   ├── raw/                          # Données brutes
-│   ├── processed/                    # Données nettoyées
-│   └── models/                       # Modèles sérialisés
+│   ├── raw/                          # Avis bruts (JSON)
+│   ├── processed/                    # Données nettoyées (CSV/Parquet)
+│   └── models/                       # Modèles sérialisés (.pkl)
 ├── notebooks/
-│   └── analysis.ipynb                # Analyses exploratoires
-├── requirements.txt
-├── docker-compose.yml
-└── README.md
+│   └── exploratory_analysis.ipynb    # Analyses préliminaires
+├── requirements.txt                  # Dépendances Python
+├── README.md                         # Documentation technique
+└── LICENSE                           # Licence MIT
+
 
 ---
 
 🛠️ Installation
 
-**Prérequis**
+*Prérequis*
 
 python --version   # >= 3.9
 docker --version   # >= 20.10
 docker-compose --version
 
-**Installation**
+*Installation*
 
-# 1. Clone du repository
+# 1. Cloner le dépôt
 git clone https://github.com/Didier2024-hue/trustpilot-analysis.git
 cd trustpilot-analysis
 
-# 2. Lancement des services Docker
-docker-compose up -d
+# 2. Lancer les conteneurs (MongoDB, PostgreSQL, MLflow, etc.)
+docker-compose up -d --build
 
-# 3. Installation des dépendances Python
+# 3. Installer les dépendances Python
 pip install -r requirements.txt
 
-# 4. Initialisation des bases de données
-python scripts/scraping/creation_mongodb.py
-python scripts/scraping/creation_postgre.py
+# 4. Initialiser les bases de données
+python scripts/scraping/init_mongodb.py
+python scripts/scraping/init_postgresql.py
+
+# 5. Lancer le pipeline complet (via Airflow)
+# Accéder à http://localhost:8080 pour déclencher les DAGs
+
+# 6. Démarrer l'API FastAPI
+uvicorn scripts.api.fastapi_app\:app --reload
+
+# 7. Accéder au dashboard Streamlit
+streamlit run dashboard/streamlit_app.py
+
 
 ---
 

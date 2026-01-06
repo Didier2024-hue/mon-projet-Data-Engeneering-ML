@@ -54,38 +54,34 @@ Projet réalisé dans le cadre de la formation **Data Engineer** chez **DataScie
 
 ## 🏗️ Architecture du Projet
 
-```mermaid
-graph TD
-    A[Trustpilot Scraping] --> B[MongoDB]
-    C[Wikipedia API] --> D[PostgreSQL]
-    B --> E[Preprocessing NLP]
-    D --> E
-    E --> F[Modelisation ML]
-    F --> G[API FastAPI]
-    F --> H[Dashboard Streamlit]
-    G --> I[Docker Containers]
-    H --> I
-    I --> J[Monitoring Grafana]
-    K[Airflow] --> A
-    K --> E
-    L[GitLab CI/CD] --> I
-Composants clés :
+**Flux de données :**
+Trustpilot Scraping → MongoDB (avis)
+Wikipedia API → PostgreSQL (métadonnées)
+↓
+Préprocessing NLP → Modélisation ML
+↓
+API FastAPI → Dashboard Streamlit
+↓
+Docker Containers → Monitoring Grafana
+↑
+Airflow (orchestration) + GitLab CI/CD
 
-Collecte : Scraping automatisé + API Wikipedia
+text
 
-Stockage : MongoDB (avis JSON) + PostgreSQL (métadonnées)
+**Composants clés :**
+1. **Collecte** : Scraping automatisé + API Wikipedia
+2. **Stockage** : MongoDB (avis JSON) + PostgreSQL (métadonnées)
+3. **Traitement** : Pipeline NLP complet avec BERT
+4. **Modélisation** : LinearSVC (85.06% accuracy sentiment)
+5. **Exposition** : FastAPI + Streamlit conteneurisés
+6. **MLOps** : Airflow + GitLab + Prometheus/Grafana
 
-Traitement : Pipeline NLP complet avec BERT
+---
 
-Modélisation : LinearSVC (85.06% accuracy sentiment)
+## ⚙️ Enchaînement des Scripts
 
-Exposition : FastAPI + Streamlit conteneurisés
-
-MLOps : Airflow + GitLab + Prometheus/Grafana
-
-⚙️ Enchaînement des Scripts
-Étape 1 – Collecte
-bash
+### Étape 1 – Collecte
+```bash
 python scripts/scraping/cde_scrap_new.py      # Scraping Trustpilot
 python scripts/scraping/cde_scrap_wiki.py     # Données Wikipedia
 python scripts/scraping/creation_mongodb.py   # Initialisation MongoDB

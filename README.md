@@ -3,14 +3,14 @@
 ## 📋 Menu
 - [🎯 Objectifs du Projet](#-objectifs-du-projet)
 - [🏢 Entreprises Analysées](#-entreprises-analysées)
-- [🏗️ Architecture du Projet](#-architecture-du-projet)
-- [⚙️ Enchaînement des Scripts](#-enchaînement-des-scripts)
+- [🏗️ Architecture du Projet](#️-architecture-du-projet)
+- [⚙️ Enchaînement des Scripts](#️-enchaînement-des-scripts)
 - [🤖 Machine Learning & NLP](#-machine-learning--nlp)
 - [🚀 API & Déploiement](#-api--déploiement)
-- [🔧 MLOps & Industrialisation](#-mlops--industrialisation)
+- [🔧 MLOps & Industrialisation](#️-mlops--industrialisation)
 - [📊 Résultats Métier](#-résultats-métier)
 - [📁 Structure du Projet](#-structure-du-projet)
-- [🛠️ Installation](#-installation)
+- [🛠️ Installation](#️-installation)
 - [👥 Équipe](#-équipe)
 
 ---
@@ -54,12 +54,12 @@ Le projet suit une architecture **end-to-end**, couvrant l'ensemble du flux de d
 graph TD
     A[Trustpilot Scraping] --> B[MongoDB]
     C[Wikipedia API] --> D[PostgreSQL]
-    B --> E[Préprocessing NLP]
+    B --> E[Preprocessing NLP]
     D --> E
-    E --> F[Modélisation ML]
+    E --> F[Modelisation ML]
     F --> G[API FastAPI]
     F --> H[Dashboard Streamlit]
-    G --> I[Docker Conteneurs]
+    G --> I[Docker Containers]
     H --> I
     I --> J[Monitoring Grafana]
     K[Airflow] --> A

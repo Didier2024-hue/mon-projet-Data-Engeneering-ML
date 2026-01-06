@@ -147,6 +147,75 @@ Le projet suit une architecture **end-to-end**, couvrant l’ensemble du cycle d
 
 ---
 
+## 📁 Structure du Projet
+
+trustpilot-analysis/
+├── scripts/
+│   ├── scraping/
+│   │   ├── cde_scrap_new.py          # Scraping Trustpilot
+│   │   ├── cde_scrap_wiki.py         # Scraping Wikipedia
+│   │   ├── creation_mongodb.py       # Initialisation MongoDB
+│   │   └── creation_postgre.py       # Initialisation PostgreSQL
+│   ├── ml/
+│   │   ├── snapshot_data.py          # Export MongoDB → CSV
+│   │   ├── sentiment_analysis.py     # Annotation BERT
+│   │   ├── clean_data.py             # Nettoyage données
+│   │   ├── preprocessing_demo_ml.py  # Préprocessing NLP
+│   │   ├── train_dual_models.py      # Entraînement modèles
+│   │   └── mlflow_tracking.py        # Suivi expérimentations
+│   └── api/
+│       ├── main.py                   # FastAPI application
+│       ├── auth.py                   # Authentification JWT
+│       └── tests/                    # Tests automatisés
+├── dashboard/
+│   └── app_streamlit.py              # Interface Streamlit
+├── mlops/
+│   ├── dags/                         # Airflow DAGs
+│   ├── .gitlab-ci.yml                # Pipeline CI/CD
+│   └── monitoring/                   # Config Prometheus/Grafana
+├── docker/
+│   ├── Dockerfile.api
+│   ├── Dockerfile.streamlit
+│   ├── Dockerfile.mlflow
+│   └── docker-compose.yml
+├── data/
+│   ├── raw/                          # Données brutes
+│   ├── processed/                    # Données nettoyées
+│   └── models/                       # Modèles sérialisés
+├── notebooks/
+│   └── analysis.ipynb                # Analyses exploratoires
+├── requirements.txt
+├── docker-compose.yml
+└── README.md
+
+---
+
+🛠️ Installation
+
+**Prérequis**
+
+python --version   # >= 3.9
+docker --version   # >= 20.10
+docker-compose --version
+
+**Installation**
+
+# 1. Clone du repository
+git clone https://github.com/Didier2024-hue/trustpilot-analysis.git
+cd trustpilot-analysis
+
+# 2. Lancement des services Docker
+docker-compose up -d
+
+# 3. Installation des dépendances Python
+pip install -r requirements.txt
+
+# 4. Initialisation des bases de données
+python scripts/scraping/creation_mongodb.py
+python scripts/scraping/creation_postgre.py
+
+---
+
 ## 👤 Auteur
 
 **Didier J.**  

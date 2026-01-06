@@ -1,262 +1,162 @@
-📊 Analyse de la Satisfaction Client
-Trustpilot – Data Engineering & MLOps Project
-📋 Menu
+# 🟩🟨🟥 Analyse de la Satisfaction Client – Trustpilot 🟥🟨🟩
 
-🎯 Objectifs du projet
+Projet réalisé dans le cadre de la formation **Data Engineer – DataScientest (Promotion 2025, Supply Chain & Satisfaction Client)**.  
+Ce projet met en œuvre une approche **end-to-end** d’analyse de la satisfaction client à partir d’avis **Trustpilot**, depuis la collecte automatisée des données jusqu’à leur exposition via une **API sécurisée**, en intégrant des pratiques **Data Engineering, Machine Learning et MLOps**.
 
-🏢 Entreprises analysées
+---
 
-🏗️ Architecture du projet
+## 🔎 Résumé exécutif
 
-⚙️ Enchaînement des scripts
+- 🔎 **Collecte automatisée** de plus de **66 000 avis Trustpilot** et de données sociétales issues de Wikipédia  
+- 🗃️ **Architecture bi-base** : MongoDB (avis clients) et PostgreSQL (métadonnées entreprises)  
+- 🤖 **Pipeline NLP & ML complet** avec annotation BERT et modèles supervisés (TF-IDF + SVM)  
+- 🚀 **API FastAPI sécurisée (JWT)**, conteneurisée avec Docker et testée à 78 %  
+- 🔧 **Industrialisation MLOps** : Airflow, GitLab CI/CD, Prometheus & Grafana  
 
-🤖 Machine Learning & NLP
+Objectif : fournir une **plateforme industrialisée de veille concurrentielle** et d’aide à la décision basée sur l’analyse des sentiments clients.
 
-🚀 API & Déploiement
+---
 
-🔧 MLOps & Industrialisation
+## 🏢 Périmètre du projet
 
-📊 Résultats métier
+L’analyse se concentre sur quatre entreprises représentatives de secteurs variés afin de permettre une comparaison intersectorielle.
 
-📁 Structure du projet
+| Entreprise | Secteur | Enjeux principaux |
+|----------|--------|-------------------|
+| **Tesla** | Automobile / Énergie verte | Innovation, qualité produit, service après-vente |
+| **Temu** | E-commerce B2C | Rapport qualité-prix, délais, satisfaction |
+| **Chronopost** | Logistique | Ponctualité, gestion des réclamations |
+| **Vinted** | Marketplace C2C | Expérience utilisateur, confiance |
 
-🛠️ Installation
+---
 
-👥 Équipe
+## 🏗️ Architecture fonctionnelle globale
 
-🎯 Objectifs du projet
+Le projet suit une architecture **end-to-end**, couvrant l’ensemble du cycle de vie de la donnée.
 
-Projet réalisé dans le cadre de la formation Data Engineer chez DataScientest.
-Ce projet met en œuvre une approche end-to-end visant à extraire, structurer, enrichir, analyser et modéliser des avis clients issus de Trustpilot.
+1. **Collecte**  
+   - Scraping automatisé des avis Trustpilot  
+   - Collecte des données entreprises via l’API Wikipédia  
 
-Les objectifs principaux sont :
+2. **Stockage**  
+   - MongoDB : avis clients bruts (format JSON, schemaless)  
+   - PostgreSQL : métadonnées structurées (schéma relationnel normalisé)  
 
-mesurer automatiquement la satisfaction client ;
+3. **Préparation & NLP**  
+   - Nettoyage, normalisation et enrichissement sémantique  
+   - Annotation automatique des sentiments et notes via BERT  
 
-identifier les points forts et irritants par entreprise ;
+4. **Modélisation**  
+   - Entraînement et benchmarking de modèles supervisés  
+   - Suivi des expérimentations avec MLflow  
 
-fournir un outil de veille concurrentielle multi-entreprises, industrialisé et déployable.
+5. **Exposition**  
+   - API FastAPI sécurisée par JWT  
+   - Interfaces Streamlit pour visualisation et tests  
 
-Phase	Objectif	Résultat
-🔎 Collecte	Scraping Trustpilot + enrichissement Wikipedia	66 000+ avis collectés
-🗃️ Stockage	MongoDB + PostgreSQL	Données centralisées et historisées
-🌐 Enrichissement	Métadonnées entreprises (secteur, CA, SIREN…)	Contexte métier enrichi
-🛠️ Préparation	Nettoyage, standardisation, annotation BERT	58 328 avis exploitables
-🤖 Modélisation	Benchmark ML & NLP	F1-score ≈ 0.75
-🚀 Production	API FastAPI + Streamlit + Docker	17 conteneurs, 78 % de couverture de tests
-🔧 MLOps	Airflow + CI/CD + Monitoring	Pipeline industrialisé
-🏢 Entreprises analysées
+6. **MLOps**  
+   - Orchestration Airflow  
+   - CI/CD GitLab  
+   - Monitoring Prometheus & Grafana  
 
-L’étude porte sur quatre entreprises représentatives de secteurs variés :
+---
 
-Entreprise	Secteur	Avis collectés	Enjeux principaux
-Tesla	Automobile / Énergie	21 743	Innovation, SAV, qualité produit
-Temu	E-commerce B2C	32 220	Qualité perçue, délais
-Chronopost	Logistique	3 545	Ponctualité, gestion des litiges
-Vinted	Marketplace C2C	308	Confiance et expérience utilisateur
+## 🔎 Collecte des données
 
-Total analysé : 58 328 avis
+### Avis clients – Trustpilot
+- Scraping automatisé quotidien
+- Collecte historisée et horodatée
+- Stockage brut dans MongoDB
+- Processus résilient (reprise sur incident, respect robots.txt)
 
-🏗️ Architecture du projet
+### Données entreprises – Wikipédia
+- Collecte mensuelle via API
+- Enrichissement métier (CA, secteur, SIREN, fondateur…)
+- Stockage structuré dans PostgreSQL
 
-Le projet suit une architecture end-to-end, couvrant l’ensemble du cycle de vie de la donnée.
+---
 
-graph TD
-    A[Trustpilot Scraping] --> B[MongoDB]
-    C[Wikipedia API] --> D[PostgreSQL]
-    B --> E[Preprocessing NLP]
-    D --> E
-    E --> F[Modélisation ML]
-    F --> G[API FastAPI]
-    F --> H[Dashboard Streamlit]
-    G --> I[Docker Containers]
-    H --> I
-    I --> J[Monitoring Grafana]
-    K[Airflow] --> A
-    K[Airflow] --> E
-    L[GitLab CI/CD] --> I
+## 🗃️ Stockage des données
 
-Composants clés
+### PostgreSQL
+- Métadonnées entreprises
+- Schéma relationnel normalisé
+- Backend MLflow pour le suivi des modèles
 
-Collecte : Scraping automatisé Trustpilot + API Wikipedia
+### MongoDB
+- Avis Trustpilot au format JSON
+- Flexibilité documentaire
+- Optimisé pour gros volumes et accès rapides
 
-Stockage : MongoDB (avis) et PostgreSQL (métadonnées entreprises)
+---
 
-Traitement ML / NLP : BERT, TF-IDF, LinearSVC
+## 🤖 Machine Learning & NLP
 
-Exposition : API FastAPI et interface Streamlit
+### Pipeline ML
+1. Extraction des avis depuis MongoDB  
+2. Annotation automatique des labels (sentiment & note 1–5) via BERT  
+3. Nettoyage (doublons, outliers, commentaires non exploitables)  
+4. Prétraitement NLP avancé (lemmatisation, négations, normalisation)  
+5. Vectorisation TF-IDF  
+6. Entraînement et benchmarking multi-modèles  
+7. Sélection, sérialisation et versioning  
+8. Suivi expérimental avec MLflow  
 
-MLOps : Airflow, GitLab CI/CD, Prometheus, Grafana
+### Résultats du benchmarking
 
-⚙️ Enchaînement des scripts
-Étape 1 – Collecte des données
+| Tâche | Modèle | Accuracy | F1-score (macro) |
+|-----|-------|----------|------------------|
+| Sentiment | Logistic Regression | 82.62 % | 0.7537 |
+| Sentiment | **LinearSVC** | **85.06 %** | **0.7546** |
+| Sentiment | Random Forest | 81.40 % | 0.6445 |
+| Note | Logistic Regression | 70.73 % | 0.4697 |
+| Note | **LinearSVC** | **80.43 %** | **0.4949** |
+| Note | Random Forest | 79.48 % | 0.3594 |
 
-Scraping Trustpilot
+➡️ **Modèle retenu : LinearSVC**
 
-python scripts/scraping/cde_scrap_new.py
+---
 
+## 🚀 API & Déploiement
 
-Enrichissement Wikipedia
+- **FastAPI** : endpoints REST (consultation, prédiction, export)  
+- **Sécurité** : authentification JWT (Off / Partial / Full)  
+- **Docker** : 17 conteneurs isolés  
+- **Tests** : Pytest, 78 % de couverture  
+- **Streamlit** : dashboards métier et interface de test ML  
 
-python scripts/scraping/cde_scrap_wiki.py
+---
 
+## 🔧 MLOps & Supervision
 
-Initialisation MongoDB
+- **Airflow** : orchestration complète du pipeline (scraping → ML → déploiement)  
+- **GitLab CI/CD** : linting, tests automatisés et validation Docker  
+- **Prometheus** : collecte des métriques système et applicatives  
+- **Grafana** : dashboards temps réel et supervision continue  
 
-python scripts/scraping/creation_mongodb.py
+---
 
+## 📊 Résumé métier
 
-Initialisation PostgreSQL
+| Entreprise | Point fort | Point faible | Recommandation |
+|----------|-----------|-------------|----------------|
+| Tesla | Innovation produit | Service après-vente | Renforcer l’expérience post-achat |
+| Chronopost | Rapidité réseau | Dernier kilomètre | Améliorer le suivi temps réel |
+| Vinted | Communauté | Gestion des litiges | Médiation plus rapide et juste |
+| Temu | Prix bas | Attentes vs réalité | Clarifier l’offre et les retours |
 
-python scripts/scraping/creation_postgre.py
+---
 
-Étape 2 – Préparation ML
+## 👤 Auteur
 
-Snapshot MongoDB
+**Didier J.**  
+Formation **Data Engineer – DataScientest**  
+📧 Email : kiembraid@gmail.com  
+🔗 GitHub : Didier2024-hue  
 
-Annotation automatique BERT
+---
 
-Nettoyage et filtrage
+## 📄 Licence
 
-Préprocessing NLP avancé
-
-Étape 3 – Modélisation
-
-Entraînement et benchmarking
-
-Sérialisation des modèles
-
-Tracking des expériences avec MLflow
-
-🤖 Machine Learning & NLP
-Pipeline de traitement
-
-Extraction des avis bruts depuis MongoDB
-
-Annotation automatique du sentiment via BERT
-
-Nettoyage (doublons, outliers, bruit)
-
-Préprocessing NLP (lemmatisation, négations, normalisation)
-
-Vectorisation TF-IDF
-
-Benchmarking multi-modèles
-
-Résultats du benchmarking
-Tâche	Modèle	Accuracy	F1-score (macro)
-Sentiment	Logistic Regression	82.62 %	0.7537
-Sentiment	LinearSVC	85.06 %	0.7546
-Sentiment	Random Forest	81.40 %	0.6445
-Note	Logistic Regression	70.73 %	0.4697
-Note	LinearSVC	80.43 %	0.4949
-Note	Random Forest	79.48 %	0.3594
-
-Modèle retenu : LinearSVC
-
-🚀 API & Déploiement
-Composants
-
-FastAPI : endpoints REST (consultation, prédiction, export)
-
-Authentification JWT : modes Off / Partial / Full
-
-Streamlit : dashboard interactif
-
-Docker : 17 conteneurs isolés
-
-Tests : Pytest – 78 % de couverture
-
-Exemple d’appel API
-import requests
-
-response = requests.post(
-    "http://localhost:8000/token",
-    data={"username": "user", "password": "pass"}
-)
-
-token = response.json()["access_token"]
-headers = {"Authorization": f"Bearer {token}"}
-
-data = {"text": "Produit excellent mais livraison tardive"}
-response = requests.post(
-    "http://localhost:8000/predict/sentiment",
-    json=data,
-    headers=headers
-)
-
-print(response.json())
-
-🔧 MLOps & Industrialisation
-Orchestration – Airflow
-
-DAGs automatisés : Scraping → Nettoyage → Entraînement → Déploiement
-
-Exécution contrôlée et relançable
-
-Suivi des logs et alertes
-
-CI/CD – GitLab
-
-Linting (flake8)
-
-Tests API automatisés
-
-Validation avant déploiement Docker
-
-Monitoring
-
-Prometheus : collecte des métriques
-
-Grafana : dashboards temps réel
-
-Alerting : détection proactive d’incidents
-
-📊 Résultats métier
-Entreprise	Points forts	Points faibles	Recommandations
-Tesla	Innovation	SAV	Renforcer l’expérience post-achat
-Chronopost	Réseau rapide	Dernier kilomètre	Améliorer le suivi et les recours
-Vinted	Communauté	Gestion des litiges	Accélérer l’arbitrage
-Temu	Prix	Attentes client	Clarifier l’offre et les retours
-
-Insights clés
-
-Forte polarisation : 75 % des avis sont notés 1/5 ou 5/5
-
-Thèmes récurrents : livraison, service client, qualité produit
-
-📁 Structure du projet
-trustpilot-analysis/
-├── scripts/
-├── dashboard/
-├── mlops/
-├── docker/
-├── data/
-├── notebooks/
-├── requirements.txt
-├── docker-compose.yml
-└── README.md
-
-🛠️ Installation
-Prérequis
-
-Python ≥ 3.9
-
-Docker ≥ 20.10
-
-Installation
-git clone https://github.com/Didier2024-hue/trustpilot-analysis.git
-cd trustpilot-analysis
-docker-compose up -d
-pip install -r requirements.txt
-
-👥 Équipe
-Rôle	Nom	Contribution
-Auteur	Didier J.	Développement complet
-Tuteur	Rémy D.	Encadrement technique
-COO	Vincent L.	Supervision métier
-Organisme	DataScientest	Formation Data Engineer
-📄 Licence
-
-Projet académique réalisé dans le cadre de la formation Data Engineer – DataScientest.
-Licence MIT.
+Projet académique distribué sous licence **MIT**.  
+Voir le fichier `LICENSE` pour plus de détails.

@@ -103,3 +103,39 @@ python scripts/ml/snapshot_data.py            # Export MongoDB → CSV
 python scripts/ml/sentiment_analysis.py       # Annotation BERT
 python scripts/ml/clean_data.py               # Nettoyage données
 python scripts/ml/preprocessing_demo_ml.py    # Préprocessing NLP
+
+python scripts/ml/train_dual_models.py        # Benchmarking modèles
+python scripts/ml/save_model.py               # Sérialisation modèle
+python scripts/ml/mlflow_tracking.py          # Suivi expérimentations
+
+python scripts/ml/train_dual_models.py        # Benchmarking modèles
+python scripts/ml/save_model.py               # Sérialisation modèle
+python scripts/ml/mlflow_tracking.py          # Suivi expérimentations
+
+---
+
+## 🤖 Machine Learning & NLP
+Pipeline de traitement :
+
+Extraction des avis bruts depuis MongoDB
+
+Annotation automatique avec BERT (sentiment + notes 1-5)
+
+Nettoyage (doublons, outliers, textes non exploitables)
+
+Préprocessing NLP (lemmatisation, négations, normalisation)
+
+Vectorisation TF-IDF
+
+Benchmarking de 3 modèles sur 2 tâches
+
+Résultats du benchmarking :
+
+Tâche	Modèle	Accuracy	F1-score (macro)
+Sentiment	LogisticRegression	82.62%	0.7537
+Sentiment	LinearSVC	85.06%	0.7546
+Sentiment	RandomForest	81.40%	0.6445
+Note	LogisticRegression	70.73%	0.4697
+Note	LinearSVC	80.43%	0.4949
+Note	RandomForest	79.48%	0.3594
+Modèle retenu : LinearSVC - Meilleures performances sur les deux tâches

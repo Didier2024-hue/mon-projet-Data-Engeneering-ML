@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain · Satisfaction Client — Didier Joséphine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #22222e;
+    --accent: #5b8cff;
+    --accent2: #ff6b6b;
+    --accent3: #50e3a4;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --gold: #f4c842;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── LANGUAGE TOGGLE ── */
+  #lang-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .lang-btn {
+    padding: 0.4rem 0.9rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .lang-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.2rem 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(10,10,15,0.95) 0%, transparent 100%);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(34,34,46,0.5);
+  }
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav-brand span { color: var(--accent); }
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(91,140,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,140,255,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+  .hero-glow {
+    position: absolute;
+    width: 800px; height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(91,140,255,0.12) 0%, transparent 60%);
+    top: -200px; right: -200px;
+    pointer-events: none;
+  }
+  .hero-glow2 {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(80,227,164,0.08) 0%, transparent 60%);
+    bottom: -100px; left: -100px;
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    max-width: 900px;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-family: 'Lora', serif;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+    line-height: 1.8;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+    flex-wrap: wrap;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 0.3rem; }
+  .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .meta-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--text);
+  }
+  .meta-value.accent { color: var(--accent); }
+  .meta-value.green { color: var(--accent3); }
+  .meta-value.red { color: var(--accent2); }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 6rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 3rem;
+    line-height: 1.15;
+  }
+  h2 em {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  /* ── ARCHITECTURE PIPELINE ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 3rem 0;
+    overflow-x: auto;
+    padding: 1rem 0;
+  }
+  .pipe-step {
+    flex: 1;
+    min-width: 140px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .pipe-step:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    z-index: 1;
+  }
+  .pipe-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 1.2rem;
+    z-index: 2;
+    background: var(--bg);
+    padding: 0 2px;
+  }
+  .pipe-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .pipe-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+    filter: saturate(0.8);
+  }
+  .pipe-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.3rem;
+  }
+  .pipe-tech {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  /* ── CARDS GRID ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+  .card {
+    background: var(--card);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .card:hover { background: #1c1c28; }
+  .card-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.8rem;
+    display: block;
+  }
+  .card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.8rem;
+  }
+  .card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+  .card-accent {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .card:hover .card-accent { transform: scaleX(1); }
+
+  /* ── ML RESULTS ── */
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    margin: 2rem 0;
+  }
+  .results-table th {
+    text-align: left;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .results-table td {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid rgba(34,34,46,0.5);
+  }
+  .results-table tr:hover td { background: var(--card); }
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .badge-best { background: rgba(80,227,164,0.15); color: var(--accent3); }
+  .badge-task { background: rgba(91,140,255,0.15); color: var(--accent); }
+
+  /* ── BAR CHART ── */
+  .bar-group { margin: 2.5rem 0; }
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+  .bar-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text);
+  }
+  .bar-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent3);
+    font-weight: 400;
+  }
+  .bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    width: 0;
+    animation: growBar 1.2s cubic-bezier(0.23,1,0.32,1) forwards;
+    animation-play-state: paused;
+  }
+  .bar-fill.animate { animation-play-state: running; }
+
+  @keyframes growBar {
+    from { width: 0; }
+    to { width: var(--w); }
+  }
+
+  /* ── COMPANIES ── */
+  .companies-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+  .company-card {
+    background: var(--card);
+    padding: 2.5rem;
+    transition: background 0.3s;
+  }
+  .company-card:hover { background: #1a1a26; }
+  .company-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+  }
+  .company-sector {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+  .company-stat {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .cstat { display: flex; flex-direction: column; gap: 0.2rem; }
+  .cstat-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+  .cstat-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .company-strength {
+    font-size: 0.85rem;
+    color: var(--accent3);
+    margin-bottom: 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+  }
+  .company-pain {
+    font-size: 0.85rem;
+    color: var(--accent2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+  }
+
+  /* ── TECH STACK ── */
+  .tech-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 2rem 0;
+  }
+  .tech-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .tech-pill:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--card);
+  }
+  .tech-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .tech-dot.green { background: var(--accent3); }
+  .tech-dot.red { background: var(--accent2); }
+  .tech-dot.gold { background: var(--gold); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+  .tl-item {
+    position: relative;
+    padding: 0 0 2.5rem 1.5rem;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -4px; top: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .tl-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .tl-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+  .tl-text {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 3rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .footer-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .footer-text a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .footer-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .footer-link:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s, transform 0.7s;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { padding: 6rem 1.5rem 3rem; }
+    section { padding: 4rem 1.5rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; }
+    .companies-grid { grid-template-columns: 1fr; }
+    .pipeline { gap: 0.5rem; flex-wrap: wrap; }
+    .pipe-step:not(:last-child)::after { display: none; }
+    #lang-toggle { top: 1rem; right: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Language Toggle -->
+<div id="lang-toggle">
+  <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- Navigation -->
+<nav>
+  <a class="nav-brand" href="#">DJ<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="#pipeline" data-fr="Architecture" data-en="Architecture">Architecture</a></li>
+    <li><a href="#data" data-fr="Données" data-en="Data">Données</a></li>
+    <li><a href="#ml" data-fr="Machine Learning" data-en="Machine Learning">Machine Learning</a></li>
+    <li><a href="#companies" data-fr="Résultats" data-en="Results">Résultats</a></li>
+    <li><a href="#mlops" data-fr="MLOps" data-en="MLOps">MLOps</a></li>
+    <li><a href="#stack" data-fr="Stack" data-en="Stack">Stack</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+
+
+  <h1>
+    <span data-fr="Supply Chain &amp; <em>Satisfaction</em><br>Client" data-en="Supply Chain &amp; <em>Customer</em><br>Satisfaction">Supply Chain &amp; <em>Satisfaction</em><br>Client</span>
+  </h1>
+  <p class="hero-sub" data-fr="Un pipeline end-to-end de Data Engineering et Machine Learning pour l'analyse des avis Trustpilot de Tesla, Temu, Chronopost et Vinted." data-en="An end-to-end Data Engineering and Machine Learning pipeline for Trustpilot review analysis across Tesla, Temu, Chronopost and Vinted.">
+    Un pipeline end-to-end de Data Engineering et Machine Learning pour l'analyse des avis Trustpilot de Tesla, Temu, Chronopost et Vinted.
+  </p>
+
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label" data-fr="Avis collectés" data-en="Reviews collected">Avis collectés</span>
+      <span class="meta-value accent">66 864</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label" data-fr="Avis exploitables" data-en="Usable reviews">Avis exploitables</span>
+      <span class="meta-value green">58 328</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label" data-fr="Meilleure accuracy (sentiment)" data-en="Best accuracy (sentiment)">Meilleure accuracy (sentiment)</span>
+      <span class="meta-value">85.06%</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label" data-fr="Auteur" data-en="Author">Auteur</span>
+      <span class="meta-value" style="font-size:1rem;line-height:1.4;">Didier<br>Joséphine</span>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- Pipeline Architecture -->
+<section id="pipeline" class="reveal">
+  <p class="section-tag" data-fr="01 · Architecture" data-en="01 · Architecture">01 · Architecture</p>
+  <h2 data-fr="Pipeline <em>end-to-end</em>" data-en="End-to-<em>end</em> pipeline">Pipeline <em>end-to-end</em></h2>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-num">01</div>
+      <div class="pipe-icon">🕸️</div>
+      <div class="pipe-name" data-fr="Collecte" data-en="Collect">Collecte</div>
+      <div class="pipe-tech">Trustpilot<br>Wikipedia API</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">02</div>
+      <div class="pipe-icon">🗄️</div>
+      <div class="pipe-name" data-fr="Stockage" data-en="Storage">Stockage</div>
+      <div class="pipe-tech">MongoDB<br>PostgreSQL</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">03</div>
+      <div class="pipe-icon">🧹</div>
+      <div class="pipe-name" data-fr="Nettoyage" data-en="Cleaning">Nettoyage</div>
+      <div class="pipe-tech">spaCy · NLTK<br>–4.2% bruit</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">04</div>
+      <div class="pipe-icon">🤖</div>
+      <div class="pipe-name" data-fr="ML / NLP" data-en="ML / NLP">ML / NLP</div>
+      <div class="pipe-tech">BERT · TF-IDF<br>LinearSVC</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">05</div>
+      <div class="pipe-icon">🚀</div>
+      <div class="pipe-name" data-fr="API" data-en="API">API</div>
+      <div class="pipe-tech">FastAPI<br>JWT · Docker</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">06</div>
+      <div class="pipe-icon">🔁</div>
+      <div class="pipe-name" data-fr="MLOps" data-en="MLOps">MLOps</div>
+      <div class="pipe-tech">Airflow · GitLab<br>Grafana</div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card">
+      <span class="card-number">PARTIE 1</span>
+      <h3 data-fr="Collecte automatisée" data-en="Automated collection">Collecte automatisée</h3>
+      <p data-fr="Scraping historisé respectant robots.txt avec reprise automatique. 66 864 avis + enrichissement mensuel via API Wikipédia (SIREN, CA, logos)." data-en="Historized scraping respecting robots.txt with automatic resume. 66,864 reviews + monthly enrichment via Wikipedia API (SIREN, revenue, logos).">Scraping historisé respectant robots.txt avec reprise automatique. 66 864 avis + enrichissement mensuel via API Wikipédia (SIREN, CA, logos).</p>
+      <div class="card-accent"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">PARTIE 2</span>
+      <h3 data-fr="Architecture multi-bases" data-en="Multi-database architecture">Architecture multi-bases</h3>
+      <p data-fr="MongoDB pour les avis JSON (schémaless, volumineux) et PostgreSQL pour les métadonnées structurées + backend MLflow. Déployé via Docker Compose." data-en="MongoDB for JSON reviews (schemaless, high-volume) and PostgreSQL for structured metadata + MLflow backend. Deployed via Docker Compose.">MongoDB pour les avis JSON (schémaless, volumineux) et PostgreSQL pour les métadonnées structurées + backend MLflow. Déployé via Docker Compose.</p>
+      <div class="card-accent"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">PARTIE 3</span>
+      <h3 data-fr="NLP & Machine Learning" data-en="NLP & Machine Learning">NLP & Machine Learning</h3>
+      <p data-fr="BERT multilingue pour annoter la vérité terrain. Benchmarking LinearSVC vs LogisticRegression vs RandomForest. Suivi MLflow sur 6 modèles." data-en="Multilingual BERT to annotate ground truth. Benchmarking LinearSVC vs LogisticRegression vs RandomForest. MLflow tracking across 6 models.">BERT multilingue pour annoter la vérité terrain. Benchmarking LinearSVC vs LogisticRegression vs RandomForest. Suivi MLflow sur 6 modèles.</p>
+      <div class="card-accent"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">PARTIE 4</span>
+      <h3 data-fr="API & Mise en production" data-en="API & Production deployment">API & Mise en production</h3>
+      <p data-fr="FastAPI REST sécurisée JWT (3 modes : Off/Partial/Full). 17 tests Pytest — 100% succès, ~78% de couverture. Interface Streamlit connectée." data-en="JWT-secured REST FastAPI (3 modes: Off/Partial/Full). 17 Pytest tests — 100% pass rate, ~78% coverage. Connected Streamlit interface.">FastAPI REST sécurisée JWT (3 modes : Off/Partial/Full). 17 tests Pytest — 100% succès, ~78% de couverture. Interface Streamlit connectée.</p>
+      <div class="card-accent"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">PARTIE 5</span>
+      <h3 data-fr="Plateforme MLOps" data-en="MLOps Platform">Plateforme MLOps</h3>
+      <p data-fr="Airflow orchestre scraping → insertion → ML. CI/CD GitLab (lint + tests). Grafana/Prometheus supervise 17 conteneurs Docker en temps réel." data-en="Airflow orchestrates scraping → insertion → ML. GitLab CI/CD (lint + tests). Grafana/Prometheus monitors 17 Docker containers in real time.">Airflow orchestre scraping → insertion → ML. CI/CD GitLab (lint + tests). Grafana/Prometheus supervise 17 conteneurs Docker en temps réel.</p>
+      <div class="card-accent"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">PARTIE 6</span>
+      <h3 data-fr="Perspectives & améliorations" data-en="Perspectives & improvements">Perspectives & améliorations</h3>
+      <p data-fr="Intégration de modèles Transformer (CamemBERT, RoBERTa) pour affiner l'analyse. Extension à de nouvelles entreprises et sources (Google Reviews, Amazon). Alerting automatique en cas de data drift détecté." data-en="Integration of Transformer models (CamemBERT, RoBERTa) for deeper analysis. Extension to new companies and sources (Google Reviews, Amazon). Automatic alerting on detected data drift.">Intégration de modèles Transformer (CamemBERT, RoBERTa) pour affiner l'analyse. Extension à de nouvelles entreprises et sources (Google Reviews, Amazon). Alerting automatique en cas de data drift détecté.</p>
+      <div class="card-accent" style="background:var(--accent3)"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Data -->
+<section id="data" class="reveal">
+  <p class="section-tag" data-fr="02 · Données" data-en="02 · Data">02 · Données</p>
+  <h2 data-fr="Nettoyage &amp; <em>préparation</em>" data-en="Cleaning &amp; <em>preparation</em>">Nettoyage &amp; <em>préparation</em></h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start">
+    <div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-tag" data-fr="Export MongoDB" data-en="MongoDB export">Export MongoDB</div>
+          <div class="tl-title">66 832 <span data-fr="avis" data-en="reviews">avis</span></div>
+          <div class="tl-text" data-fr="Export consolidé des collections Trustpilot" data-en="Consolidated export from Trustpilot collections">Export consolidé des collections Trustpilot</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-tag" data-fr="Annotation BERT" data-en="BERT annotation">Annotation BERT</div>
+          <div class="tl-title">60 869 <span data-fr="traités" data-en="processed">traités</span></div>
+          <div class="tl-text" data-fr="nlptown/bert-base-multilingual-uncased-sentiment — labels sentiment + note" data-en="nlptown/bert-base-multilingual-uncased-sentiment — sentiment + rating labels">nlptown/bert-base-multilingual-uncased-sentiment — labels sentiment + note</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-tag" data-fr="Déduplication" data-en="Deduplication">Déduplication</div>
+          <div class="tl-title">−1 548 <span data-fr="doublons" data-en="duplicates">doublons</span></div>
+          <div class="tl-text" data-fr="Doublons textuels identifiés et supprimés (−2.5%)" data-en="Textual duplicates identified and removed (−2.5%)">Doublons textuels identifiés et supprimés (−2.5%)</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-tag" data-fr="Filtrage" data-en="Filtering">Filtrage</div>
+          <div class="tl-title">−986 <span data-fr="outliers" data-en="outliers">outliers</span></div>
+          <div class="tl-text" data-fr="Commentaires trop courts/longs + emojis-only (−7)" data-en="Too short/long comments + emoji-only (−7)">Commentaires trop courts/longs + emojis-only (−7)</div>
+        </div>
+        <div class="tl-item" style="padding-bottom:0">
+          <div class="tl-tag" data-fr="Jeu final" data-en="Final dataset">Jeu final</div>
+          <div class="tl-title" style="color:var(--accent3)">58 328 ✓</div>
+          <div class="tl-text" data-fr="95.8% de conservation — prêt pour l'analyse" data-en="95.8% retention — ready for analysis">95.8% de conservation — prêt pour l'analyse</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1.5rem" data-fr="Distribution des notes BERT (60 869 avis)" data-en="BERT rating distribution (60,869 reviews)">Distribution des notes BERT (60 869 avis)</p>
+
+      <div class="bar-group">
+        <div class="bar-label">
+          <span class="bar-name">★★★★★ <span data-fr="Très positif" data-en="Very positive">Très positif</span></span>
+          <span class="bar-val">40.6%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="--w:40.6%"></div></div>
+
+        <div class="bar-label">
+          <span class="bar-name">★★★★☆ <span data-fr="Positif" data-en="Positive">Positif</span></span>
+          <span class="bar-val">12.7%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="--w:12.7%"></div></div>
+
+        <div class="bar-label">
+          <span class="bar-name">★★★☆☆ <span data-fr="Neutre" data-en="Neutral">Neutre</span></span>
+          <span class="bar-val" style="color:var(--gold)">7.1%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="--w:7.1%;background:linear-gradient(90deg,var(--gold),var(--accent))"></div></div>
+
+        <div class="bar-label">
+          <span class="bar-name">★★☆☆☆ <span data-fr="Négatif" data-en="Negative">Négatif</span></span>
+          <span class="bar-val" style="color:var(--accent2)">5.7%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="--w:5.7%;background:linear-gradient(90deg,var(--accent2),var(--gold))"></div></div>
+
+        <div class="bar-label">
+          <span class="bar-name">★☆☆☆☆ <span data-fr="Très négatif" data-en="Very negative">Très négatif</span></span>
+          <span class="bar-val" style="color:var(--accent2)">34.0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="--w:34%;background:linear-gradient(90deg,var(--accent2),#ff9090)"></div></div>
+      </div>
+
+      <p style="font-size:0.82rem;color:var(--muted);border-left:2px solid var(--accent);padding-left:1rem;font-style:italic" data-fr="74.8% des avis sont aux extrêmes (1 ou 5 étoiles). Une polarisation révélatrice : les clients sont soit conquis, soit furieux." data-en="74.8% of reviews are at the extremes (1 or 5 stars). A revealing polarization: customers are either won over or furious.">
+        74.8% des avis sont aux extrêmes (1 ou 5 étoiles). Une polarisation révélatrice : les clients sont soit conquis, soit furieux.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ML Results -->
+<section id="ml" class="reveal">
+  <p class="section-tag" data-fr="03 · Machine Learning" data-en="03 · Machine Learning">03 · Machine Learning</p>
+  <h2 data-fr="Benchmarking des <em>modèles</em>" data-en="Model <em>benchmarking</em>">Benchmarking des <em>modèles</em></h2>
+
+  <table class="results-table">
+    <thead>
+      <tr>
+        <th data-fr="Tâche" data-en="Task">Tâche</th>
+        <th data-fr="Modèle" data-en="Model">Modèle</th>
+        <th>Accuracy</th>
+        <th>F1-score macro</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-task" data-fr="Sentiment" data-en="Sentiment">Sentiment</span></td>
+        <td>LinearSVC</td>
+        <td style="color:var(--accent3)"><strong>85.06%</strong></td>
+        <td style="color:var(--accent3)">0.7546</td>
+        <td><span class="badge badge-best">★ Best</span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-task" data-fr="Sentiment" data-en="Sentiment">Sentiment</span></td>
+        <td>LogisticRegression</td>
+        <td>82.62%</td>
+        <td>0.7537</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-task" data-fr="Sentiment" data-en="Sentiment">Sentiment</span></td>
+        <td>RandomForest</td>
+        <td>81.40%</td>
+        <td>0.6445</td>
+        <td></td>
+      </tr>
+      <tr style="border-top:2px solid var(--border)">
+        <td><span class="badge" style="background:rgba(244,200,66,0.15);color:var(--gold)" data-fr="Note" data-en="Rating">Note</span></td>
+        <td>LinearSVC</td>
+        <td style="color:var(--accent3)"><strong>80.43%</strong></td>
+        <td style="color:var(--accent3)">0.4949</td>
+        <td><span class="badge badge-best">★ Best</span></td>
+      </tr>
+      <tr>
+        <td><span class="badge" style="background:rgba(244,200,66,0.15);color:var(--gold)" data-fr="Note" data-en="Rating">Note</span></td>
+        <td>LogisticRegression</td>
+        <td>70.73%</td>
+        <td>0.4697</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="badge" style="background:rgba(244,200,66,0.15);color:var(--gold)" data-fr="Note" data-en="Rating">Note</span></td>
+        <td>RandomForest</td>
+        <td>79.48%</td>
+        <td>0.3594</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:2rem">
+    <div class="card" style="border:none">
+      <span class="card-number">LinearSVC</span>
+      <h3 data-fr="Meilleur global" data-en="Best overall">Meilleur global</h3>
+      <p data-fr="Régularité sur les deux tâches. Exploite mieux la représentation TF-IDF bigrammes. Choix final retenu." data-en="Consistent across both tasks. Better exploitation of TF-IDF bigram representation. Final selected model.">Régularité sur les deux tâches. Exploite mieux la représentation TF-IDF bigrammes. Choix final retenu.</p>
+      <div class="card-accent" style="background:var(--accent3)"></div>
+    </div>
+    <div class="card" style="border:none">
+      <span class="card-number">Classe neutre</span>
+      <h3 data-fr="Point difficile" data-en="Challenging point">Point difficile</h3>
+      <p data-fr="Seulement 36.4% de rappel sur les avis neutres. Polarisation extrême des données (74.8% aux extrêmes) limite la nuance." data-en="Only 36.4% recall on neutral reviews. Extreme data polarization (74.8% at extremes) limits nuance.">Seulement 36.4% de rappel sur les avis neutres. Polarisation extrême des données (74.8% aux extrêmes) limite la nuance.</p>
+      <div class="card-accent" style="background:var(--gold)"></div>
+    </div>
+    <div class="card" style="border:none">
+      <span class="card-number">SMOTE abandonné</span>
+      <h3 data-fr="Décision technique" data-en="Technical decision">Décision technique</h3>
+      <p data-fr="Le suréchantillonnage SMOTE a dégradé le F1-score. class_weight='balanced' retenu — plus efficace sans modifier le dataset." data-en="SMOTE oversampling degraded the F1-score. class_weight='balanced' retained — more effective without altering the dataset.">Le suréchantillonnage SMOTE a dégradé le F1-score. class_weight='balanced' retenu — plus efficace sans modifier le dataset.</p>
+      <div class="card-accent" style="background:var(--accent2)"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Companies -->
+<section id="companies" class="reveal">
+  <p class="section-tag" data-fr="04 · Résultats métier" data-en="04 · Business results">04 · Résultats métier</p>
+  <h2 data-fr="Diagnostic <em>par entreprise</em>" data-en="Diagnosis <em>per company</em>">Diagnostic <em>par entreprise</em></h2>
+
+  <div class="companies-grid">
+    <div class="company-card">
+      <div class="company-name" style="color:#e5a020">Tesla</div>
+      <div class="company-sector" data-fr="Automobile high-tech · Énergie verte" data-en="High-tech automotive · Green energy">Automobile high-tech · Énergie verte</div>
+      <div class="company-stat">
+        <div class="cstat">
+          <span class="cstat-val">217</span>
+          <span class="cstat-lbl" data-fr="avis" data-en="reviews">avis</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-val">2</span>
+          <span class="cstat-lbl" data-fr="pôles" data-en="poles">pôles</span>
+        </div>
+      </div>
+      <div class="company-strength">✦ <span data-fr="Force : Innovation produit & technologie" data-en="Strength: Product innovation & technology">Force : Innovation produit & technologie</span></div>
+      <div class="company-pain">✖ <span data-fr="Douleur : SAV lent, cher, opaque" data-en="Pain: Slow, costly, opaque after-sales service">Douleur : SAV lent, cher, opaque</span></div>
+    </div>
+
+    <div class="company-card">
+      <div class="company-name" style="color:#4fa3e0">Chronopost</div>
+      <div class="company-sector" data-fr="Logistique · Livraison express" data-en="Logistics · Express delivery">Logistique · Livraison express</div>
+      <div class="company-stat">
+        <div class="cstat">
+          <span class="cstat-val">32 220</span>
+          <span class="cstat-lbl" data-fr="avis" data-en="reviews">avis</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-val">B2B/B2C</span>
+          <span class="cstat-lbl" data-fr="interface" data-en="interface">interface</span>
+        </div>
+      </div>
+      <div class="company-strength">✦ <span data-fr="Force : Rapidité & réseau de livraison" data-en="Strength: Speed & delivery network">Force : Rapidité & réseau de livraison</span></div>
+      <div class="company-pain">✖ <span data-fr="Douleur : Dernier kilomètre & flexibilité" data-en="Pain: Last-mile delivery & flexibility">Douleur : Dernier kilomètre & flexibilité</span></div>
+    </div>
+
+    <div class="company-card">
+      <div class="company-name" style="color:#5dba8e">Vinted</div>
+      <div class="company-sector" data-fr="E-commerce · Mode circulaire" data-en="E-commerce · Circular fashion">E-commerce · Mode circulaire</div>
+      <div class="company-stat">
+        <div class="cstat">
+          <span class="cstat-val">30 882</span>
+          <span class="cstat-lbl" data-fr="avis" data-en="reviews">avis</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-val">P2P</span>
+          <span class="cstat-lbl" data-fr="modèle" data-en="model">modèle</span>
+        </div>
+      </div>
+      <div class="company-strength">✦ <span data-fr="Force : Communauté & prix compétitifs" data-en="Strength: Community & competitive prices">Force : Communauté & prix compétitifs</span></div>
+      <div class="company-pain">✖ <span data-fr="Douleur : Arbitrage des litiges perçu lent" data-en="Pain: Slow dispute resolution perceived">Douleur : Arbitrage des litiges perçu lent</span></div>
+    </div>
+
+    <div class="company-card">
+      <div class="company-name" style="color:#e55a5a">Temu</div>
+      <div class="company-sector" data-fr="E-commerce · Prix ultra-compétitifs" data-en="E-commerce · Ultra-competitive pricing">E-commerce · Prix ultra-compétitifs</div>
+      <div class="company-stat">
+        <div class="cstat">
+          <span class="cstat-val">3 545</span>
+          <span class="cstat-lbl" data-fr="avis" data-en="reviews">avis</span>
+        </div>
+        <div class="cstat">
+          <span class="cstat-val">Disruptif</span>
+          <span class="cstat-lbl" data-fr="modèle" data-en="model">modèle</span>
+        </div>
+      </div>
+      <div class="company-strength">✦ <span data-fr="Force : Prix bas, satisfaction à l'achat" data-en="Strength: Low prices, purchase satisfaction">Force : Prix bas, satisfaction à l'achat</span></div>
+      <div class="company-pain">✖ <span data-fr="Douleur : Écart attentes/réalité (qualité, délais)" data-en="Pain: Expectation vs reality gap (quality, delays)">Douleur : Écart attentes/réalité (qualité, délais)</span></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- MLOps -->
+<section id="mlops" class="reveal">
+  <p class="section-tag" data-fr="05 · MLOps" data-en="05 · MLOps">05 · MLOps</p>
+  <h2 data-fr="Orchestration &amp; <em>supervision</em>" data-en="Orchestration &amp; <em>monitoring</em>">Orchestration &amp; <em>supervision</em></h2>
+
+  <div class="cards-grid">
+    <div class="card">
+      <span class="card-number">AIRFLOW</span>
+      <h3 data-fr="Orchestration du pipeline" data-en="Pipeline orchestration">Orchestration du pipeline</h3>
+      <p data-fr="4 DAGs manuels (scraping → insertion → ML → global). BashOperator pour tâches légères, SSHOperator pour les modèles lourds sur Hyper-V." data-en="4 manual DAGs (scraping → insertion → ML → global). BashOperator for light tasks, SSHOperator for heavy ML models on Hyper-V.">4 DAGs manuels (scraping → insertion → ML → global). BashOperator pour tâches légères, SSHOperator pour les modèles lourds sur Hyper-V.</p>
+      <div class="card-accent" style="background:#1bc2e0"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">GITLAB CI/CD</span>
+      <h3 data-fr="Automatisation qualité" data-en="Quality automation">Automatisation qualité</h3>
+      <p data-fr="Shell Runner local. 2 stages : lint (flake8) + tests API dans Docker. Script git_main.sh pour synchronisation dev → main et déclenchement CI." data-en="Local Shell Runner. 2 stages: lint (flake8) + API tests in Docker. git_main.sh script for dev → main sync and CI trigger.">Shell Runner local. 2 stages : lint (flake8) + tests API dans Docker. Script git_main.sh pour synchronisation dev → main et déclenchement CI.</p>
+      <div class="card-accent" style="background:#e24329"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">GRAFANA / PROMETHEUS</span>
+      <h3 data-fr="Monitoring temps réel" data-en="Real-time monitoring">Monitoring temps réel</h3>
+      <p data-fr="4 dashboards : état global, ressources système, conteneurs Docker, métriques API. 17 conteneurs supervisés. Alertes CPU/RAM/latence." data-en="4 dashboards: global status, system resources, Docker containers, API metrics. 17 supervised containers. CPU/RAM/latency alerts.">4 dashboards : état global, ressources système, conteneurs Docker, métriques API. 17 conteneurs supervisés. Alertes CPU/RAM/latence.</p>
+      <div class="card-accent" style="background:#f5a623"></div>
+    </div>
+    <div class="card">
+      <span class="card-number">MLFLOW</span>
+      <h3 data-fr="Traçabilité des modèles" data-en="Model traceability">Traçabilité des modèles</h3>
+      <p data-fr="Backend PostgreSQL. 6 runs trackés (3 sentiment + 3 note). Versioning des artefacts. Interface web sur :5000. Data drift documenté." data-en="PostgreSQL backend. 6 tracked runs (3 sentiment + 3 rating). Artifact versioning. Web interface on :5000. Data drift documented.">Backend PostgreSQL. 6 runs trackés (3 sentiment + 3 note). Versioning des artefacts. Interface web sur :5000. Data drift documenté.</p>
+      <div class="card-accent" style="background:#0194e2"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Stack -->
+<section id="stack" class="reveal">
+  <p class="section-tag" data-fr="06 · Stack technique" data-en="06 · Tech stack">06 · Stack technique</p>
+  <h2 data-fr="Technologies <em>utilisées</em>" data-en="Technologies <em>used</em>">Technologies <em>utilisées</em></h2>
+
+  <div class="tech-cloud">
+    <div class="tech-pill"><div class="tech-dot"></div>Python 3.10</div>
+    <div class="tech-pill"><div class="tech-dot green"></div>FastAPI</div>
+    <div class="tech-pill"><div class="tech-dot green"></div>MongoDB 7</div>
+    <div class="tech-pill"><div class="tech-dot green"></div>PostgreSQL 15</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Docker 28</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Docker Compose</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>scikit-learn</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>BERT (nlptown)</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>TF-IDF + LinearSVC</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>spaCy</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>NLTK</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>TextBlob</div>
+    <div class="tech-pill"><div class="tech-dot gold"></div>LDA (Gensim)</div>
+    <div class="tech-pill"><div class="tech-dot green"></div>MLflow 3.3.1</div>
+    <div class="tech-pill"><div class="tech-dot green"></div>Streamlit</div>
+    <div class="tech-pill"><div class="tech-dot red"></div>Apache Airflow</div>
+    <div class="tech-pill"><div class="tech-dot red"></div>Prometheus</div>
+    <div class="tech-pill"><div class="tech-dot red"></div>Grafana</div>
+    <div class="tech-pill"><div class="tech-dot red"></div>GitLab CI/CD</div>
+    <div class="tech-pill"><div class="tech-dot"></div>JWT (HS256)</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Pytest (~78% cov.)</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Ubuntu 22.04 LTS</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Hyper-V</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Wikipedia API</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Wikidata</div>
+    <div class="tech-pill"><div class="tech-dot"></div>cAdvisor</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Loki / Promtail</div>
+    <div class="tech-pill"><div class="tech-dot"></div>Redis</div>
+  </div>
+
+  <div style="margin-top:3rem;padding:2rem;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent)">
+    <p style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:600;margin-bottom:0.6rem" data-fr="Conclusion" data-en="Conclusion">Conclusion</p>
+    <p style="font-size:0.9rem;color:var(--muted)" data-fr="Une architecture de production complète : 17 services orchestrés, un modèle LinearSVC atteignant 85% d'accuracy, une API sécurisée JWT et une plateforme MLOps opérationnelle. Ce projet illustre la maturité d'un pipeline Data Engineering pensé pour durer et s'adapter." data-en="A complete production architecture: 17 orchestrated services, a LinearSVC model reaching 85% accuracy, a JWT-secured API and a fully operational MLOps platform. This project illustrates the maturity of a Data Engineering pipeline built to last and scale.">
+      Une architecture de production complète : 17 services orchestrés, un modèle LinearSVC atteignant 85% d'accuracy, une API sécurisée JWT et une plateforme MLOps opérationnelle. Ce projet illustre la maturité d'un pipeline Data Engineering pensé pour durer et s'adapter.
+    </p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div>
+    <p class="footer-text">Didier Joséphine · <span data-fr="Supply Chain &amp; Satisfaction Client" data-en="Supply Chain &amp; Customer Satisfaction">Supply Chain &amp; Satisfaction Client</span></p>
+  </div>
+  <div style="display:flex;gap:0.8rem;flex-wrap:wrap">
+    <a href="#" class="footer-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+</footer>
+
+<script>
+// ── Language System ──
+let currentLang = 'fr';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === lang.toUpperCase());
+  });
+  document.querySelectorAll('[data-fr]').forEach(el => {
+    const val = el.getAttribute('data-' + lang);
+    if (!val) return;
+    // Handle elements with inner HTML (em tags)
+    if (val.includes('<') || val.includes('&')) {
+      el.innerHTML = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+}
+
+// ── Scroll Reveal ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      // Trigger bar animations
+      e.target.querySelectorAll('.bar-fill').forEach(b => b.classList.add('animate'));
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Smooth active nav ──
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 200) current = s.getAttribute('id');
+  });
+  navLinks.forEach(a => {
+    a.style.color = a.getAttribute('href') === '#' + current
+      ? 'var(--text)' : 'var(--muted)';
+  });
+});
+</script>
+</body>
+</html>

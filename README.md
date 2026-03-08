@@ -604,10 +604,10 @@ trustpilot-analysis/
 
 | Rôle | Nom | Contribution |
 |------|-----|--------------|
-| **🎓 Auteur** | **Didier J.** | Développement complet du projet end-to-end |
+| **🎓 Auteur** | **Didier Joséphine** | Développement complet du projet end-to-end |
 | **👨‍🏫 Tuteur** | **Rémy D.** | Encadrement technique et méthodologique |
 | **💼 COO** | **Vincent L.** | Supervision métier et stratégique |
-| **🏢 Organisme** | **DataScientest** | Formation Data Engineer - Promotion 2025 |
+| **🏢 Organisme** | **Liora (ex : DataScientest) ** | Formation Data Engineer - Promotion 2025 |
 
 </div>
 
@@ -634,7 +634,7 @@ Distribué sous licence **MIT** - voir le fichier [LICENSE](LICENSE) pour plus d
 
 ---
 
-**Dernière mise à jour** : Janvier 2025  
+**Dernière mise à jour** : Mars 2026  
 **Statut du projet** : ✅ **Production - MLOps Industrialisé**
 
 ---
